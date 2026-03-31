@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MigraNova</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#eff6ff 0%,#f8f9fc 50%,#f5f3ff 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+  .wrap{text-align:center;padding:40px 20px;}
+  .logo{font-family:'DM Serif Display',serif;font-size:42px;color:#2563eb;margin-bottom:8px;}
+  .sub{font-size:13px;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;margin-bottom:48px;}
+  .cards{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;}
+  .card{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:32px 28px;width:260px;text-decoration:none;transition:all 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+  .card:hover{border-color:#2563eb;box-shadow:0 8px 24px rgba(37,99,235,0.12);transform:translateY(-2px);}
+  .card-icon{font-size:36px;margin-bottom:14px;}
+  .card-title{font-size:17px;font-weight:600;color:#0f172a;margin-bottom:6px;}
+  .card-desc{font-size:13px;color:#64748b;line-height:1.5;}
+  .card-btn{display:inline-block;margin-top:16px;padding:8px 20px;background:#2563eb;color:#fff;border-radius:8px;font-size:13px;font-weight:500;}
+  .card:hover .card-btn{background:#1d4ed8;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">MigraNova</div>
+  <div class="sub">Sistema de Gestión de Extranjería</div>
+  <div class="cards">
+    <a href="migranova-despacho.html" class="card">
+      <div class="card-icon">🏛️</div>
+      <div class="card-title">Portal del Despacho</div>
+      <div class="card-desc">Gestión de expedientes, clientes, presupuestos y facturación VeriFactu.</div>
+      <div class="card-btn">Acceder →</div>
+    </a>
+    <a href="migranova-cliente.html" class="card">
+      <div class="card-icon">👤</div>
+      <div class="card-title">Portal del Cliente</div>
+      <div class="card-desc">Sube tu documentación y comunícate con el despacho de forma segura.</div>
+      <div class="card-btn">Acceder →</div>
+    </a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MigraNova — Portal del Cliente</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f8f9fc;--bg2:#ffffff;--bg3:#f1f4f9;--surface:#f1f4f9;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --accent:#2563eb;--accent2:#3b82f6;--accent-light:#eff6ff;
+  --green:#059669;--green-light:#ecfdf5;
+  --red:#dc2626;--red-light:#fef2f2;
+  --gold:#d97706;--gold-light:#fffbeb;
+  --purple:#7c3aed;--purple-light:#f5f3ff;
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --radius:12px;--shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.06);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#eff6ff 0%,#f8f9fc 50%,#f5f3ff 100%);}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:48px;width:420px;box-shadow:var(--shadow);}
+.login-logo{font-family:'DM Serif Display',serif;font-size:26px;color:var(--accent);margin-bottom:4px;}
+.login-tagline{font-size:12px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.login-desc{font-size:13px;color:var(--text2);margin-bottom:28px;padding:10px 12px;background:var(--accent-light);border-radius:8px;border-left:3px solid var(--accent);}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;}
+input,textarea,select{background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;outline:none;transition:border-color 0.15s;width:100%;}
+input:focus,textarea:focus{border-color:var(--accent);background:#fff;}
+textarea{resize:vertical;min-height:80px;}
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;transition:all 0.15s;}
+.btn-primary{background:var(--accent);color:#fff;width:100%;}
+.btn-primary:hover{background:#1d4ed8;}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-ghost{background:var(--bg3);border:1.5px solid var(--border);color:var(--text2);}
+.btn-ghost:hover{background:var(--surface);border-color:var(--border2);}
+.btn-sm{padding:7px 13px;font-size:12.5px;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:#047857;}
+.error-box{background:var(--red-light);border:1px solid #fecaca;color:var(--red);padding:10px 13px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;}
+
+/* APP */
+#app{display:none;min-height:100vh;background:var(--bg);}
+#app.visible{display:block;}
+
+/* HEADER */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+.header-logo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--accent);}
+.header-logo span{color:var(--text3);font-size:13px;font-family:'DM Sans',sans-serif;font-weight:400;margin-left:8px;}
+.header-user{display:flex;align-items:center;gap:10px;}
+.user-chip{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;font-size:12.5px;color:var(--text2);}
+.user-dot{width:8px;height:8px;border-radius:50%;background:var(--green);}
+
+/* MAIN */
+.main{max-width:860px;margin:0 auto;padding:28px 20px;}
+.page-header{margin-bottom:24px;}
+.page-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--text2);}
+.expiry-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;background:var(--gold-light);border:1px solid #fde68a;border-radius:20px;font-size:11.5px;color:var(--gold);font-weight:500;margin-top:8px;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:4px;margin-bottom:22px;border:1px solid var(--border);}
+.tab{flex:1;padding:9px;border-radius:7px;border:none;background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text2);transition:all 0.15s;text-align:center;}
+.tab.active{background:#fff;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+.card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+
+/* DOCS */
+.doc-item{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px;transition:all 0.15s;}
+.doc-item.obligatorio{border-left:3px solid var(--red);}
+.doc-item.importante{border-left:3px solid var(--gold);}
+.doc-item.subido{border-left:3px solid var(--green);background:var(--green-light);}
+.doc-status{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.doc-info{flex:1;}
+.doc-name{font-size:13.5px;font-weight:500;color:var(--text);}
+.doc-desc{font-size:11.5px;color:var(--text3);margin-top:2px;}
+.doc-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:8px;font-weight:600;margin-top:3px;text-transform:uppercase;}
+.tag-oblig{background:#fee2e2;color:var(--red);}
+.tag-imp{background:#fef3c7;color:var(--gold);}
+.tag-ok{background:#d1fae5;color:var(--green);}
+.upload-btn{flex-shrink:0;}
+
+/* FILE UPLOAD */
+.drop-zone{border:2px dashed var(--border2);border-radius:10px;padding:28px;text-align:center;cursor:pointer;transition:all 0.15s;background:var(--bg3);}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:var(--accent-light);}
+.drop-zone-icon{font-size:32px;margin-bottom:8px;}
+.drop-zone-text{font-size:13px;color:var(--text2);}
+.drop-zone-sub{font-size:11px;color:var(--text3);margin-top:4px;}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;max-height:420px;overflow-y:auto;padding:4px;}
+.msg{display:flex;flex-direction:column;max-width:78%;}
+.msg.despacho{align-self:flex-start;}
+.msg.cliente{align-self:flex-end;}
+.msg-bubble{padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.5;}
+.msg.despacho .msg-bubble{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:4px 14px 14px 14px;}
+.msg.cliente .msg-bubble{background:var(--accent);color:#fff;border-radius:14px 14px 4px 14px;}
+.msg-meta{font-size:10.5px;color:var(--text3);margin-top:3px;padding:0 4px;}
+.msg.cliente .msg-meta{text-align:right;}
+.chat-input-wrap{display:flex;gap:8px;align-items:flex-end;}
+.chat-input-wrap textarea{flex:1;min-height:44px;max-height:120px;}
+
+/* PROGRESS */
+.progress-wrap{margin-bottom:18px;}
+.progress-bar{height:8px;background:var(--bg3);border-radius:10px;overflow:hidden;margin-top:5px;border:1px solid var(--border);}
+.progress-fill{height:100%;border-radius:10px;background:var(--accent);transition:width 0.4s ease;}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);}
+
+/* ALERT */
+.alert{display:flex;align-items:flex-start;gap:9px;padding:11px 14px;border-radius:9px;margin-bottom:12px;font-size:13px;}
+.alert.info{background:var(--accent-light);border:1px solid #bfdbfe;color:#1e40af;}
+.alert.success{background:var(--green-light);border:1px solid #a7f3d0;color:#065f46;}
+.alert.warn{background:var(--gold-light);border:1px solid #fde68a;color:#92400e;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.4);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border:1px solid var(--border);border-radius:16px;width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);animation:su 0.2s ease;}
+@keyframes su{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:20px 22px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.modal-title{font-size:16px;font-weight:600;color:var(--text);}
+.modal-close{width:28px;height:28px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.modal-body{padding:0 22px 16px;}
+.modal-footer{padding:0 22px 20px;display:flex;justify-content:flex-end;gap:8px;}
+
+#toast{position:fixed;bottom:20px;right:20px;z-index:999;display:none;padding:10px 16px;border-radius:9px;font-size:13px;font-weight:500;box-shadow:var(--shadow);}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
+
+.loading{display:flex;align-items:center;justify-content:center;padding:32px;color:var(--text3);gap:9px;font-size:13px;}
+.spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:36px;color:var(--text3);}
+.empty-icon{font-size:32px;margin-bottom:8px;}
+
+.notif-dot{width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block;margin-left:4px;vertical-align:middle;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">MigraNova</div>
+    <div class="login-tagline">Portal del Cliente</div>
+    <div class="login-desc">📋 Aquí puedes subir tu documentación y comunicarte con el despacho.</div>
+    <div class="error-box" id="login-error"></div>
+    <div class="form-group"><label>Tu correo electrónico</label><input type="email" id="login-email" placeholder="tu@email.com" autocomplete="email"></div>
+    <div class="form-group" style="margin-bottom:22px"><label>Contraseña</label><input type="password" id="login-password" placeholder="Contraseña enviada por el despacho" autocomplete="current-password"></div>
+    <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Entrar a mi expediente</button>
+    <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--text3)">¿Problemas para acceder? Contacta con el despacho</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header class="header">
+    <div>
+      <div class="header-logo">MigraNova <span>Portal del Cliente</span></div>
+    </div>
+    <div class="header-user">
+      <div class="user-chip"><div class="user-dot"></div><span id="header-nombre">—</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Salir</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-title" id="page-title">Mi Expediente</div>
+      <div class="page-sub" id="page-sub">—</div>
+      <div class="expiry-badge" id="expiry-badge">⏱ Acceso válido hasta: —</div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('docs')">📄 Mis Documentos</button>
+      <button class="tab" onclick="showTab('chat')">💬 Chat con el Despacho <span id="chat-notif" style="display:none" class="notif-dot"></span></button>
+      <button class="tab" onclick="showTab('estado')">📊 Estado del Expediente</button>
+    </div>
+
+    <!-- TAB DOCS -->
+    <div id="tab-docs">
+      <div class="alert info">ℹ️ Sube los documentos marcados como <strong>Obligatorios</strong> para que el despacho pueda tramitar tu expediente.</div>
+
+      <div class="card">
+        <div class="card-title">📊 Progreso de documentación</div>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Documentos subidos</span><span id="prog-text">0 de 0</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div id="lista-docs"><div class="loading"><div class="spinner"></div>Cargando documentos...</div></div>
+    </div>
+
+    <!-- TAB CHAT -->
+    <div id="tab-chat" style="display:none">
+      <div class="card">
+        <div class="card-title">💬 Chat con el Despacho</div>
+        <div class="chat-wrap" id="chat-msgs"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+        <div class="chat-input-wrap">
+          <textarea id="chat-input" placeholder="Escribe tu mensaje..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensaje();}"></textarea>
+          <button class="btn btn-primary btn-sm" onclick="enviarMensaje()" style="height:44px;min-width:80px">Enviar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB ESTADO -->
+    <div id="tab-estado" style="display:none">
+      <div class="card" id="card-estado"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL SUBIR DOC -->
+<div class="modal-overlay" id="modal-subir">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="modal-subir-title">Subir documento</div><div class="modal-close" onclick="closeModal('subir')">✕</div></div>
+    <div class="modal-body">
+      <div class="alert info" style="margin-bottom:14px" id="modal-subir-desc">—</div>
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <div class="drop-zone-icon">📎</div>
+        <div class="drop-zone-text">Haz clic o arrastra tu archivo aquí</div>
+        <div class="drop-zone-sub">PDF, JPG, PNG o Word · Máx. 10MB</div>
+      </div>
+      <input type="file" id="file-input" style="display:none" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onchange="handleFile(this.files[0])">
+      <div id="file-preview" style="display:none;margin-top:12px;padding:11px 13px;background:var(--green-light);border:1px solid #a7f3d0;border-radius:8px;font-size:13px;color:#065f46"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('subir')">Cancelar</button>
+      <button class="btn btn-green" id="btn-subir" onclick="subirDocumento()" disabled>⬆ Subir documento</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPA_URL='https://wybpwfnwvxgenkuskuwx.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5YnB3Zm53dnhnZW5rdXNrdXd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NzcwNTksImV4cCI6MjA5MDU1MzA1OX0.02auzK4BDTDFqL3jz7VHsvQ-CTk6hAGuGZLtk-HrwlU';
+const {createClient}=supabase;
+const db=createClient(SUPA_URL,SUPA_KEY);
+
+let invitacion=null;
+let docActual=null;
+let archivoSeleccionado=null;
+
+// ── TRAMITES CONFIG (solo obligatorios) ──
+const DOCS_TRAMITE={
+  'NIE Lucrativo':[{n:'Modelo EX-15 (por duplicado)',d:'Impreso oficial cumplimentado y firmado.',t:'obligatorio'},{n:'Pasaporte en vigor',d:'Copia completa de todas las páginas.',t:'obligatorio'},{n:'Justificación del motivo',d:'Contrato de trabajo, escritura, matrícula, etc.',t:'obligatorio'},{n:'Tasa 790 código 012',d:'Justificante de pago (~10.70€).',t:'obligatorio'},{n:'Fotografía biométrica',d:'Fondo blanco, 32x26mm, reciente.',t:'obligatorio'}],
+  'NIE No Lucrativo':[{n:'Modelo EX-15 (por duplicado)',d:'Impreso oficial cumplimentado y firmado.',t:'obligatorio'},{n:'Pasaporte en vigor',d:'Copia completa.',t:'obligatorio'},{n:'Acreditación medios económicos',d:'Extractos bancarios últimos 3 meses.',t:'obligatorio'},{n:'Seguro médico privado',d:'Con cobertura en España.',t:'obligatorio'},{n:'Tasa 790 código 012',d:'Justificante de pago.',t:'obligatorio'}],
+  'Arraigo Social':[{n:'Pasaporte en vigor',d:'Copia completa. Venezolanos: se admite caducado.',t:'obligatorio'},{n:'Prueba permanencia 2 años',d:'Empadronamiento + facturas, recibos, citas médicas con tu nombre y fecha.',t:'obligatorio'},{n:'Antecedentes penales extranjeros',d:'Del país de origen. Apostillado + traducción jurada. Vigencia 3 meses.',t:'obligatorio'},{n:'Informe Servicios Sociales',d:'Emitido por el Ayuntamiento de tu municipio.',t:'obligatorio'},{n:'Contrato/precontrato trabajo (si aplica)',d:'Si tienes oferta laboral.',t:'importante'},{n:'Tasa 790-052 epígrafe 2.3.1',d:'Justificante de pago.',t:'obligatorio'}],
+  'Arraigo Sociolaboral':[{n:'Pasaporte en vigor',d:'Copia completa. Venezolanos: se admite caducado.',t:'obligatorio'},{n:'Prueba permanencia 2 años',d:'Empadronamiento + documentos con tu nombre y fecha.',t:'obligatorio'},{n:'Antecedentes penales extranjeros',d:'Apostillado + traducción jurada.',t:'obligatorio'},{n:'Precontrato de trabajo',d:'Jornada mínima 20h/semana. Salario ≥ SMI.',t:'obligatorio'},{n:'Documentación del empleador',d:'NIF de la empresa + vida laboral de la empresa.',t:'obligatorio'},{n:'Tasa 790-052 epígrafe 2.3.1',d:'Justificante de pago.',t:'obligatorio'}],
+  'Arraigo Familiar':[{n:'Pasaporte en vigor',d:'Copia completa.',t:'obligatorio'},{n:'Acreditación vínculo familiar',d:'Libro de familia, certificado matrimonio o nacimiento. Apostillado + traducción si es extranjero.',t:'obligatorio'},{n:'DNI/Pasaporte del familiar español',d:'Copia vigente del familiar con nacionalidad española.',t:'obligatorio'},{n:'Empadronamiento del familiar español',d:'Confirma que reside en España.',t:'obligatorio'},{n:'Antecedentes penales extranjeros',d:'Apostillado + traducción jurada.',t:'obligatorio'},{n:'Tasa 790-052 epígrafe 2.3.1',d:'Justificante de pago.',t:'obligatorio'}],
+  'Renovacion TIE':[{n:'Pasaporte en vigor',d:'Copia completa. Venezolanos: caducado aceptado.',t:'obligatorio'},{n:'TIE anterior',d:'Fotocopia de la tarjeta actual.',t:'obligatorio'},{n:'Certificado de empadronamiento',d:'Máx. 3 meses de antigüedad.',t:'obligatorio'},{n:'Informe de vida laboral',d:'Emitido por la Seguridad Social, actualizado.',t:'obligatorio'},{n:'Contrato de trabajo vigente',d:'Copia del contrato en vigor.',t:'obligatorio'},{n:'Últimas 3 nóminas',d:'O declaración de la renta.',t:'importante'},{n:'Tasa 790-052',d:'Justificante de pago.',t:'obligatorio'},{n:'Fotografía biométrica',d:'Fondo blanco, 32x26mm.',t:'obligatorio'}],
+  'Residencia Permanente':[{n:'Pasaporte en vigor',d:'Copia completa.',t:'obligatorio'},{n:'TIE vigente',d:'Fotocopia.',t:'obligatorio'},{n:'Empadronamiento histórico (5 años)',d:'De todos los municipios donde hayas vivido.',t:'obligatorio'},{n:'Acreditación medios económicos',d:'Nóminas, IRPF o vida laboral. Mínimo ~720€/mes.',t:'obligatorio'},{n:'Antecedentes penales España',d:'Ministerio de Justicia. Vigencia 3 meses.',t:'obligatorio'},{n:'Antecedentes penales extranjeros',d:'Apostillados + traducción jurada.',t:'obligatorio'},{n:'Fotografía biométrica',d:'Fondo blanco, 32x26mm.',t:'obligatorio'}],
+  'Reagrupacion Familiar':[{n:'Pasaporte del reagrupante',d:'Copia completa.',t:'obligatorio'},{n:'TIE/autorización del reagrupante',d:'Fotocopia vigente.',t:'obligatorio'},{n:'Empadronamiento actualizado',d:'Máx. 3 meses.',t:'obligatorio'},{n:'Certificado vínculo familiar',d:'Libro de familia / certificado matrimonio o nacimiento. Apostillado + traducción jurada.',t:'obligatorio'},{n:'Pasaportes de los familiares',d:'Originales vigentes + fotocopia de cada familiar.',t:'obligatorio'},{n:'Antecedentes penales familiares (>18 años)',d:'Apostillados + traducción jurada.',t:'obligatorio'},{n:'Informe de habitabilidad vivienda',d:'Emitido por la Delegación del Gobierno o Ayuntamiento.',t:'obligatorio'}],
+  'Nacionalidad':[{n:'Pasaporte en vigor',d:'Copia completa.',t:'obligatorio'},{n:'TIE / autorización de residencia',d:'Fotocopia vigente.',t:'obligatorio'},{n:'Empadronamiento actualizado',d:'Máx. 3 meses.',t:'obligatorio'},{n:'Antecedentes penales España',d:'Ministerio de Justicia. Vigencia 3 meses.',t:'obligatorio'},{n:'Antecedentes penales extranjeros',d:'De todos los países de residencia últimos 10 años. Apostillados + traducción jurada.',t:'obligatorio'},{n:'Certificado de nacimiento apostillado',d:'Con traducción jurada al español.',t:'obligatorio'},{n:'Diploma CCSE',d:'Examen conocimientos constitucionales — Instituto Cervantes.',t:'obligatorio'},{n:'Diploma DELE A2 o superior',d:'Examen de español — Instituto Cervantes.',t:'obligatorio'}],
+  'Asilo':[{n:'Relato de persecución escrito',d:'Narración detallada de los motivos de la solicitud.',t:'obligatorio'},{n:'Pasaporte u otro documento de identidad',d:'Si dispones de él.',t:'importante'},{n:'Documentos que acrediten la persecución',d:'Cartas de amenaza, informes médicos, denuncias, fotos, informes de ONG.',t:'importante'},{n:'Documentación de menores a cargo',d:'Partidas de nacimiento o libro de familia.',t:'importante'}],
+  'Regularizacion 2026':[{n:'Prueba de presencia antes del 1 enero 2026',d:'Pasaporte con sello entrada, billete de avión, factura o cualquier documento con tu nombre y fecha anterior al 31/12/2025.',t:'obligatorio'},{n:'Empadronamiento',d:'Histórico o actual.',t:'obligatorio'},{n:'Antecedentes penales extranjeros',d:'Del país de origen. Apostillado + traducción jurada.',t:'obligatorio'},{n:'Pasaporte o documento de identidad',d:'En vigor o caducado (venezolanos: caducado aceptado).',t:'importante'}],
+};
+
+// ── AUTH ──
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-password').value.trim();
+  const err=document.getElementById('login-error');
+  const btn=document.getElementById('login-btn');
+  err.style.display='none';
+  if(!email||!pass){showErr('Introduce tu email y contraseña.');return;}
+  btn.disabled=true;btn.textContent='Verificando...';
+  try{
+    const {data,error}=await db.from('invitaciones')
+      .select('*,clientes(*),expedientes(*)')
+      .eq('email',email.toLowerCase())
+      .eq('activa',true)
+      .gt('expira_en',new Date().toISOString())
+      .single();
+    if(error||!data){showErr('Acceso no encontrado o caducado. Contacta con el despacho.');btn.disabled=false;btn.textContent='Entrar a mi expediente';return;}
+    if(data.password_hash!==btoa(pass)){showErr('Contraseña incorrecta.');btn.disabled=false;btn.textContent='Entrar a mi expediente';return;}
+    invitacion=data;
+    showApp();
+  }catch(e){showErr('Error de conexión. Inténtalo de nuevo.');btn.disabled=false;btn.textContent='Entrar a mi expediente';}
+}
+
+function showErr(m){const e=document.getElementById('login-error');e.textContent=m;e.style.display='block';}
+function doLogout(){invitacion=null;document.getElementById('app').classList.remove('visible');document.getElementById('login-screen').style.display='flex';document.getElementById('login-email').value='';document.getElementById('login-password').value='';}
+
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  const cli=invitacion.clientes;
+  const exp=invitacion.expedientes;
+  document.getElementById('header-nombre').textContent=cli.nombre+' '+cli.apellidos;
+  document.getElementById('page-title').textContent='Mi Expediente — '+exp.tipo_tramite;
+  document.getElementById('page-sub').textContent='Nº '+exp.numero+' · '+sLabel(exp.estado);
+  const expira=new Date(invitacion.expira_en);
+  document.getElementById('expiry-badge').textContent='⏱ Acceso válido hasta: '+expira.toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+  loadDocs();
+  loadChat();
+  loadEstado();
+  setInterval(checkNuevosMensajes,30000);
+}
+
+// ── DOCS ──
+async function loadDocs(){
+  const tipo=invitacion.expedientes.tipo_tramite;
+  const docsReq=DOCS_TRAMITE[tipo]||DOCS_TRAMITE['NIE Lucrativo'];
+  const {data:subidos}=await db.from('documentos_cliente').select('*').eq('invitacion_id',invitacion.id);
+  const subidosMap={};
+  (subidos||[]).forEach(d=>subidosMap[d.nombre_doc]=d);
+  const obligatorios=docsReq.filter(d=>d.t==='obligatorio').length;
+  const subidosCount=(subidos||[]).filter(d=>docsReq.find(r=>r.n===d.nombre_doc&&r.t==='obligatorio')).length;
+  const pct=obligatorios?Math.round((subidosCount/obligatorios)*100):0;
+  document.getElementById('prog-text').textContent=subidosCount+' de '+obligatorios+' obligatorios';
+  document.getElementById('prog-fill').style.width=pct+'%';
+  const html=docsReq.map(doc=>{
+    const sub=subidosMap[doc.n];
+    const isSubido=!!sub;
+    return`<div class="doc-item ${isSubido?'subido':doc.t}">
+      <div class="doc-status" style="background:${isSubido?'#d1fae5':doc.t==='obligatorio'?'#fee2e2':'#fef3c7'}">
+        ${isSubido?'✅':doc.t==='obligatorio'?'📄':'📋'}
+      </div>
+      <div class="doc-info">
+        <div class="doc-name">${doc.n}</div>
+        <div class="doc-desc">${doc.d}</div>
+        <span class="doc-tag ${isSubido?'tag-ok':doc.t==='obligatorio'?'tag-oblig':'tag-imp'}">
+          ${isSubido?'✓ Subido — '+(sub.estado==='aprobado'?'Aprobado':sub.estado==='rechazado'?'Rechazado':'Pendiente revisión'):doc.t==='obligatorio'?'Obligatorio':'Importante'}
+        </span>
+        ${sub&&sub.notas_despacho?`<div style="margin-top:5px;font-size:11.5px;color:#1e40af;background:#eff6ff;padding:4px 8px;border-radius:6px">💬 Despacho: ${sub.notas_despacho}</div>`:''}
+      </div>
+      <div class="upload-btn">
+        ${isSubido
+          ?`<button class="btn btn-ghost btn-sm" onclick="abrirSubir('${doc.n}','${doc.d}')">Reemplazar</button>`
+          :`<button class="btn btn-primary btn-sm" onclick="abrirSubir('${doc.n}','${doc.d}')">⬆ Subir</button>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('lista-docs').innerHTML=html;
+}
+
+function abrirSubir(nombre,desc){
+  docActual={nombre,desc};
+  archivoSeleccionado=null;
+  document.getElementById('modal-subir-title').textContent='Subir: '+nombre;
+  document.getElementById('modal-subir-desc').textContent='📋 '+desc;
+  document.getElementById('file-preview').style.display='none';
+  document.getElementById('btn-subir').disabled=true;
+  document.getElementById('file-input').value='';
+  document.getElementById('modal-subir').classList.add('open');
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f)handleFile(f);
+}
+
+function handleFile(f){
+  if(!f)return;
+  if(f.size>10*1024*1024){toast('El archivo es demasiado grande (máx. 10MB)','warn');return;}
+  archivoSeleccionado=f;
+  const prev=document.getElementById('file-preview');
+  prev.style.display='block';
+  prev.innerHTML=`✅ <strong>${f.name}</strong> — ${(f.size/1024).toFixed(0)} KB`;
+  document.getElementById('btn-subir').disabled=false;
+}
+
+async function subirDocumento(){
+  if(!archivoSeleccionado||!docActual)return;
+  const btn=document.getElementById('btn-subir');
+  btn.disabled=true;btn.textContent='Subiendo...';
+  try{
+    const ext=archivoSeleccionado.name.split('.').pop();
+    const path=`${invitacion.id}/${Date.now()}.${ext}`;
+    const {data:upData,error:upError}=await db.storage.from('documentos-clientes').upload(path,archivoSeleccionado,{upsert:true});
+    let url=path;
+    if(!upError&&upData){
+      const {data:urlData}=db.storage.from('documentos-clientes').getPublicUrl(path);
+      url=urlData?.publicUrl||path;
+    }
+    const {error}=await db.from('documentos_cliente').upsert({
+      invitacion_id:invitacion.id,
+      expediente_id:invitacion.expediente_id,
+      cliente_id:invitacion.cliente_id,
+      nombre_doc:docActual.nombre,
+      nombre_archivo:archivoSeleccionado.name,
+      url_archivo:url,
+      tamanio_kb:Math.round(archivoSeleccionado.size/1024),
+      estado:'pendiente'
+    },{onConflict:'invitacion_id,nombre_doc',ignoreDuplicates:false});
+    await db.from('notificaciones').insert({
+      tipo:'documento_subido',
+      titulo:'Nuevo documento subido',
+      descripcion:`${invitacion.clientes.nombre} ha subido: ${docActual.nombre}`,
+      expediente_id:invitacion.expediente_id,
+      cliente_id:invitacion.cliente_id
+    });
+    await db.from('mensajes_chat').insert({
+      invitacion_id:invitacion.id,
+      expediente_id:invitacion.expediente_id,
+      remitente:'cliente',
+      remitente_nombre:invitacion.clientes.nombre,
+      mensaje:`He subido el documento: ${docActual.nombre}`
+    });
+    closeModal('subir');
+    toast('Documento subido correctamente','success');
+    loadDocs();
+    loadChat();
+  }catch(e){toast('Error al subir. Inténtalo de nuevo.','danger');}
+  btn.disabled=false;btn.textContent='⬆ Subir documento';
+}
+
+// ── CHAT ──
+async function loadChat(){
+  const {data}=await db.from('mensajes_chat').select('*').eq('invitacion_id',invitacion.id).order('created_at',{ascending:true});
+  const msgs=data||[];
+  if(!msgs.length){
+    document.getElementById('chat-msgs').innerHTML='<div class="empty"><div class="empty-icon">💬</div><div style="font-size:13px">Aún no hay mensajes. Escribe al despacho si tienes dudas.</div></div>';
+    return;
+  }
+  document.getElementById('chat-msgs').innerHTML=msgs.map(m=>`
+    <div class="msg ${m.remitente}">
+      <div class="msg-bubble">${m.mensaje}</div>
+      <div class="msg-meta">${m.remitente==='despacho'?'Despacho MigraNova':'Tú'} · ${fTime(m.created_at)}</div>
+    </div>`).join('');
+  const wrap=document.getElementById('chat-msgs');
+  wrap.scrollTop=wrap.scrollHeight;
+  await db.from('mensajes_chat').update({leido:true}).eq('invitacion_id',invitacion.id).eq('remitente','despacho').eq('leido',false);
+  document.getElementById('chat-notif').style.display='none';
+}
+
+async function enviarMensaje(){
+  const txt=document.getElementById('chat-input').value.trim();
+  if(!txt)return;
+  document.getElementById('chat-input').value='';
+  await db.from('mensajes_chat').insert({
+    invitacion_id:invitacion.id,
+    expediente_id:invitacion.expediente_id,
+    remitente:'cliente',
+    remitente_nombre:invitacion.clientes.nombre,
+    mensaje:txt
+  });
+  await db.from('notificaciones').insert({
+    tipo:'mensaje_nuevo',
+    titulo:'Nuevo mensaje del cliente',
+    descripcion:`${invitacion.clientes.nombre}: ${txt.substring(0,60)}${txt.length>60?'...':''}`,
+    expediente_id:invitacion.expediente_id,
+    cliente_id:invitacion.cliente_id
+  });
+  loadChat();
+}
+
+async function checkNuevosMensajes(){
+  const {data}=await db.from('mensajes_chat').select('id').eq('invitacion_id',invitacion.id).eq('remitente','despacho').eq('leido',false);
+  if((data||[]).length>0)document.getElementById('chat-notif').style.display='inline-block';
+}
+
+// ── ESTADO ──
+async function loadEstado(){
+  const exp=invitacion.expedientes;
+  const {data:hist}=await db.from('historial').select('*').eq('expediente_id',exp.id).order('created_at',{ascending:false}).limit(8);
+  const pasos=['documentacion','presentado','en_tramite','resuelto'];
+  const idx=pasos.indexOf(exp.estado);
+  const pasosHtml=pasos.map((p,i)=>{
+    const done=i<idx;const active=i===idx;
+    return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid ${i<pasos.length-1?'var(--border)':'transparent'}">
+      <div style="width:30px;height:30px;border-radius:50%;background:${done?'var(--green)':active?'var(--accent)':'var(--bg3)'};border:2px solid ${done?'var(--green)':active?'var(--accent)':'var(--border2)'};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;color:${done||active?'#fff':'var(--text3)'}">${done?'✓':i+1}</div>
+      <div>
+        <div style="font-size:13px;font-weight:${active?600:400};color:${active?'var(--accent)':done?'var(--green)':'var(--text2)'}">${sLabel(p)}</div>
+        ${active?`<div style="font-size:11px;color:var(--text3)">Estado actual de tu expediente</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  const histHtml=(hist||[]).map(h=>`<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px"><span style="color:var(--text3);min-width:80px">${fDate(h.created_at)}</span><span style="color:var(--text)">${h.accion}${h.detalle?': '+h.detalle:''}</span></div>`).join('');
+  document.getElementById('card-estado').innerHTML=`
+    <div class="card-title">📊 Estado de tu trámite</div>
+    <div style="margin-bottom:18px">${pasosHtml}</div>
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">Historial de actividad</div>
+    ${histHtml||'<div style="font-size:12px;color:var(--text3)">Sin actividad registrada aún</div>'}`;
+}
+
+// ── UI ──
+function showTab(tab){
+  ['docs','chat','estado'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['docs','chat','estado'][i]===tab);
+  });
+  if(tab==='chat'){loadChat();}
+}
+function openModal(id){document.getElementById('modal-'+id).classList.add('open');}
+function closeModal(id){document.getElementById('modal-'+id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  const c={success:['#d1fae5','#a7f3d0','#065f46'],warn:['#fef3c7','#fde68a','#92400e'],danger:['#fee2e2','#fecaca','#991b1b'],info:['#eff6ff','#bfdbfe','#1e40af']};
+  const[bg,border,color]=(c[type]||c.info);
+  t.style.background=bg;t.style.border=`1px solid ${border}`;t.style.color=color;
+  t.textContent=msg;t.style.display='block';
+  setTimeout(()=>t.style.display='none',3200);
+}
+
+const sLabel=e=>({documentacion:'Documentación',presentado:'Presentado',en_tramite:'En Trámite',urgente:'Urgente',resuelto:'Resuelto ✅'}[e]||e);
+function fDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});}
+function fTime(d){if(!d)return'—';return new Date(d).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+
+document.getElementById('login-password').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+</script>
+</body>
+</html>
