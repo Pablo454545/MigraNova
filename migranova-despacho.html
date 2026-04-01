@@ -1436,9 +1436,11 @@ async function guardarCli(){
     observaciones:document.getElementById('cli-obs').value.trim()
   };
   if(!datos.nombre||!datos.apellidos){toast('Nombre y apellidos son obligatorios','warn');return;}
-  if(id){await db.from('clientes').update(datos).eq('id',id);toast('Cliente actualizado','success');}
-  else{await db.from('clientes').insert(datos);toast('Cliente creado','success');}
-  closeModal('cliente');loadClients();
+  try{
+    if(id){await db.from('clientes').update(datos).eq('id',id);toast('Cliente actualizado','success');}
+    else{await db.from('clientes').insert(datos);toast('Cliente creado','success');}
+    closeModal('cliente');loadClients();
+  }catch(e){toast('Error: '+e.message,'danger');console.error('guardarCli error:',e);}
 }
 
 function editarCli(id){
@@ -1478,7 +1480,7 @@ async function loadExpedientes(){
       <td style="font-weight:500;color:var(--text)">${e.clientes?.nombre||''} ${e.clientes?.apellidos||''}</td>
       <td style="font-size:12px">${e.tipo_tramite}</td>
       <td><span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:10px;background:${col}18;color:${col}"><span style="width:6px;height:6px;border-radius:50%;background:${col};display:inline-block"></span>${sLabel(e.estado)}</span></td>
-      <td style="font-size:11px;color:var(--text3)">${fDate(e.fecha_presentacion||e.created_at)}</td>
+      <td style="font-size:11px;color:var(--text3)">${fDate(e.fecha_inicio||e.created_at)}</td>
       <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editarExp('${e.id}')">✏️</button></td>
     </tr>`;
   }).join('')}</tbody></table></div>`;
@@ -1499,12 +1501,32 @@ async function guardarExp(){
   const cliId=document.getElementById('exp-cliente').value;
   const tipo=document.getElementById('exp-tipo').value;
   if(!cliId||!tipo){toast('Cliente y tipo de trámite son obligatorios','warn');return;}
-  const datos={cliente_id:cliId,tipo_tramite:tipo,estado:document.getElementById('exp-estado').value,
-    fecha_presentacion:document.getElementById('exp-fecha').value||null,
-    notas:document.getElementById('exp-notas').value};
-  if(id){delete datos.numero;await db.from('expedientes').update(datos).eq('id',id);toast('Expediente actualizado','success');}
-  else{await db.from('expedientes').insert(datos);toast('Expediente creado','success');}
-  closeModal('expediente');loadExpedientes();
+  const datos={
+    cliente_id:cliId,
+    tipo_tramite:tipo,
+    estado:document.getElementById('exp-estado').value,
+    fecha_inicio:document.getElementById('exp-fecha').value||null,
+    observaciones:document.getElementById('exp-notas').value||null,
+    gestor_id:currentUser?.id||null
+  };
+  try{
+    if(id){
+      await db.from('expedientes').update(datos).eq('id',id);
+      toast('Expediente actualizado','success');
+    } else {
+      // Generar número automático
+      const year=new Date().getFullYear();
+      const{count}=await db.from('expedientes').select('*',{count:'exact',head:true});
+      const num='EXP-'+year+'-'+String((count||0)+1).padStart(4,'0');
+      await db.from('expedientes').insert({...datos,numero:num});
+      toast('Expediente creado','success');
+    }
+    closeModal('expediente');
+    loadExpedientes();
+  }catch(e){
+    toast('Error al guardar: '+e.message,'danger');
+    console.error(e);
+  }
 }
 
 async function editarExp(id){
@@ -1515,8 +1537,8 @@ async function editarExp(id){
   populateCli('exp-cliente',e.cliente_id);
   document.getElementById('exp-tipo').value=e.tipo_tramite;
   document.getElementById('exp-estado').value=e.estado;
-  document.getElementById('exp-fecha').value=e.fecha_presentacion||'';
-  document.getElementById('exp-notas').value=e.notas||'';
+  document.getElementById('exp-fecha').value=e.fecha_inicio||'';
+  document.getElementById('exp-notas').value=e.observaciones||'';
   openModal('expediente');
 }
 
@@ -1545,7 +1567,8 @@ async function loadKanban(){
 
 // ── TAREAS ──
 async function loadTareas(){
-  const{data}=await db.from('tareas').select('*,clientes(nombre,apellidos)').order('created_at',{ascending:false});
+  const{data,error:errT}=await db.from('tareas').select('*,clientes(nombre,apellidos)').order('created_at',{ascending:false});
+  if(errT){console.error('tareas error:',errT);el.innerHTML=emptyHTML('✅','Error cargando tareas',errT.message);return;}
   const el=document.getElementById('lista-tareas');
   if(!el)return;
   const tareas=data||[];
@@ -2556,8 +2579,8 @@ async function loadCitas() {
     .order('fecha_hora', { ascending: true });
   calCitas = data || [];
   const ahora = new Date();
-  document.getElementById('badge-cit').textContent =
-    calCitas.filter(c => new Date(c.fecha_hora) > ahora).length || 0;
+  const badgeCit = document.getElementById('badge-cit');
+  if(badgeCit) badgeCit.textContent = calCitas.filter(c => new Date(c.fecha_hora) > ahora).length || 0;
   renderCalendario();
 }
 
@@ -2846,17 +2869,31 @@ window.loadCitas = async function() {
 
 window.guardarCita = async function() {
   const id = document.getElementById('cit-id').value;
+  const lugarVal = document.getElementById('cit-lugar')?.value||'';
   const datos = {
     cliente_id: document.getElementById('cit-cliente').value,
     tipo: document.getElementById('cit-tipo').value,
     fecha_hora: document.getElementById('cit-fecha').value,
     duracion_minutos: parseInt(document.getElementById('cit-duracion').value) || 30,
-    notas: document.getElementById('cit-notas').value,
-    lugar: document.getElementById('cit-lugar')?.value || ''
+    notas: document.getElementById('cit-notas').value
   };
+  if(lugarVal) datos.lugar = lugarVal;  // solo si la columna existe
   if (!datos.cliente_id || !datos.fecha_hora) { toast('Cliente y fecha son obligatorios', 'warn'); return; }
-  if (id) await db.from('citas').update(datos).eq('id', id);
-  else await db.from('citas').insert(datos);
+  try {
+    if (id) await db.from('citas').update(datos).eq('id', id);
+    else { const {error:errC} = await db.from('citas').insert(datos); if(errC) throw errC; }
+  } catch(e) {
+    // Si falla por el campo 'lugar', intentar sin él
+    if(e.message?.includes('lugar') || e.code==='PGRST204') {
+      delete datos.lugar;
+      if (id) await db.from('citas').update(datos).eq('id', id);
+      else await db.from('citas').insert(datos);
+    } else {
+      toast('Error al guardar cita: '+e.message,'danger');
+      console.error('guardarCita error:',e);
+      return;
+    }
+  }
 
   // Recordatorios
   const recDia = document.getElementById('rec-dia-antes')?.checked;
