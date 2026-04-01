@@ -1567,7 +1567,7 @@ async function loadKanban(){
 
 // ── TAREAS ──
 async function loadTareas(){
-  const{data,error:errT}=await db.from('tareas').select('*,clientes(nombre,apellidos)').order('created_at',{ascending:false});
+  const{data,error:errT}=await db.from('tareas').select('*').order('created_at',{ascending:false});
   if(errT){console.error('tareas error:',errT);el.innerHTML=emptyHTML('✅','Error cargando tareas',errT.message);return;}
   const el=document.getElementById('lista-tareas');
   if(!el)return;
@@ -1578,7 +1578,7 @@ async function loadTareas(){
     <input type="checkbox" ${t.completada?'checked':''} onchange="toggleTarea('${t.id}',this.checked)" style="width:16px;height:16px;cursor:pointer">
     <div style="flex:1">
       <div style="font-size:13px;font-weight:${t.completada?400:500};color:var(--text);text-decoration:${t.completada?'line-through':'none'}">${t.titulo}</div>
-      <div style="font-size:11px;color:var(--text3)">${t.clientes?.nombre||''} ${t.clientes?.apellidos||''} ${t.fecha_limite?'· Vence: '+fDate(t.fecha_limite):''}</div>
+      <div style="font-size:11px;color:var(--text3)">${t.descripcion||''} ${t.fecha_vencimiento?'· Vence: '+fDate(t.fecha_vencimiento):''}</div>
     </div>
     <span style="font-size:10px;padding:2px 8px;border-radius:8px;background:${{urgente:'#fee2e2',alta:'#fef3c7',normal:'#eff6ff',baja:'#f0fdf4'}[t.prioridad]||'var(--bg3)'};color:${{urgente:'#991b1b',alta:'#92400e',normal:'#1e40af',baja:'#166534'}[t.prioridad]||'var(--text3)'}">${t.prioridad}</span>
     <button class="btn btn-ghost btn-sm" onclick="editarTarea('${t.id}')">✏️</button>
@@ -1587,13 +1587,21 @@ async function loadTareas(){
 
 async function guardarTarea(){
   const id=document.getElementById('tar-id').value;
-  const datos={titulo:document.getElementById('tar-titulo').value.trim(),cliente_id:document.getElementById('tar-cliente').value||null,
-    expediente_id:document.getElementById('tar-expediente').value||null,prioridad:document.getElementById('tar-prioridad').value,
-    fecha_limite:document.getElementById('tar-fecha').value||null,notas:document.getElementById('tar-notas').value,completada:false};
+  const datos={
+    titulo:document.getElementById('tar-titulo').value.trim(),
+    expediente_id:document.getElementById('tar-expediente').value||null,
+    prioridad:document.getElementById('tar-prioridad').value||'normal',
+    fecha_vencimiento:document.getElementById('tar-fecha').value||null,
+    descripcion:document.getElementById('tar-notas').value||null,
+    asignado_a:currentUser?.id||null,
+    completada:false
+  };
   if(!datos.titulo){toast('El título es obligatorio','warn');return;}
-  if(id)await db.from('tareas').update(datos).eq('id',id);
-  else await db.from('tareas').insert(datos);
-  toast('Tarea guardada','success');closeModal('tarea');loadTareas();
+  try{
+    if(id)await db.from('tareas').update(datos).eq('id',id);
+    else await db.from('tareas').insert(datos);
+    toast('Tarea guardada','success');closeModal('tarea');loadTareas();
+  }catch(e){toast('Error: '+e.message,'danger');console.error(e);}
 }
 
 async function toggleTarea(id,checked){
@@ -1608,7 +1616,7 @@ async function editarTarea(id){
   document.getElementById('tar-id').value=t.id;
   document.getElementById('tar-titulo').value=t.titulo||'';
   document.getElementById('tar-prioridad').value=t.prioridad||'normal';
-  document.getElementById('tar-fecha').value=t.fecha_limite||'';
+  document.getElementById('tar-fecha').value=t.fecha_vencimiento||'';
   document.getElementById('tar-notas').value=t.notas||'';
   populateCli('tar-cliente',t.cliente_id);
   openModal('tarea');
@@ -1632,7 +1640,7 @@ async function loadCitas(){
       </div>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:500;color:var(--text)">${c.clientes?.nombre||''} ${c.clientes?.apellidos||''}</div>
-        <div style="font-size:11px;color:var(--text3)">${new Date(c.fecha_hora).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})} · ${c.tipo||''} ${c.duracion_minutos?'· '+c.duracion_minutos+'min':''}</div>
+        <div style="font-size:11px;color:var(--text3)">${new Date(c.fecha_hora).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})} · ${c.tipo||''} ${c.duracion_min?'· '+c.duracion_min+'min':''}</div>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="editarCita('${c.id}')">✏️</button>
     </div>`;
@@ -1657,7 +1665,7 @@ async function editarCita(id){
   document.getElementById('cit-id').value=c.id;
   document.getElementById('cit-tipo').value=c.tipo||'oficina';
   document.getElementById('cit-fecha').value=c.fecha_hora?c.fecha_hora.substring(0,16):'';
-  document.getElementById('cit-duracion').value=c.duracion_minutos||30;
+  document.getElementById('cit-duracion').value=c.duracion_min||30;
   document.getElementById('cit-notas').value=c.notas||'';
   document.getElementById('cit-lugar').value=c.lugar||'';
   // Poblar clientes y seleccionar el correcto
@@ -2449,7 +2457,7 @@ function openModal(id){
   el.classList.add('open');
   if(id==='cliente'){document.getElementById('modal-cli-title').textContent='Nuevo Cliente';document.getElementById('cli-id').value='';['cli-nombre','cli-apellidos','cli-pas','cli-nie','cli-tel','cli-email','cli-dir','cli-obs'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});document.getElementById('cli-nac').value='';document.getElementById('cli-fn').value='';}
   if(id==='expediente'){document.getElementById('modal-exp-title').textContent='Nuevo Expediente';document.getElementById('exp-id').value='';populateCli('exp-cliente');document.getElementById('exp-tipo').value='';document.getElementById('exp-estado').value='documentacion';document.getElementById('exp-fecha').value='';document.getElementById('exp-notas').value='';}
-  if(id==='tarea'){document.getElementById('modal-tar-title').textContent='Nueva Tarea';document.getElementById('tar-id').value='';document.getElementById('tar-titulo').value='';document.getElementById('tar-prioridad').value='normal';document.getElementById('tar-fecha').value='';document.getElementById('tar-notas').value='';populateCli('tar-cliente');}
+  if(id==='tarea'){document.getElementById('modal-tar-title').textContent='Nueva Tarea';document.getElementById('tar-id').value='';document.getElementById('tar-titulo').value='';document.getElementById('tar-prioridad').value='normal';document.getElementById('tar-fecha').value='';document.getElementById('tar-notas').value='';}
   if(id==='cita'){
     document.getElementById('modal-cit-title').textContent='Nueva Cita';
     document.getElementById('cit-id').value='';
@@ -2710,7 +2718,7 @@ function renderSemana(el) {
         const col = CAL_COLORES[c.tipo] || CAL_COLORES.otro;
         const mins = new Date(c.fecha_hora).getMinutes();
         const top = Math.round(mins / 60 * 44);
-        const dur = c.duracion_minutos || 30;
+        const dur = c.duracion_min || 30;
         const h2 = Math.max(20, Math.round(dur / 60 * 44));
         html += `<div class="cal-evento-semana" style="background:${col.bg};color:${col.color};border-left:3px solid ${col.border};top:${top}px;height:${h2}px"
           onclick="event.stopPropagation();mostrarCitaPanel('${c.id}')" title="${c.clientes?.nombre||''} ${c.clientes?.apellidos||''}">
@@ -2744,12 +2752,12 @@ function renderDia(el) {
       const col = CAL_COLORES[c.tipo] || CAL_COLORES.otro;
       const mins = new Date(c.fecha_hora).getMinutes();
       const top = Math.round(mins / 60 * 52);
-      const dur = c.duracion_minutos || 30;
+      const dur = c.duracion_min || 30;
       const h2 = Math.max(28, Math.round(dur / 60 * 52));
       html += `<div class="cal-evento-dia" style="background:${col.bg};color:${col.color};border-left:3px solid ${col.border};top:${top}px;min-height:${h2}px"
         onclick="event.stopPropagation();mostrarCitaPanel('${c.id}')">
         <div style="font-size:12px;font-weight:600">${new Date(c.fecha_hora).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})} — ${c.clientes?.nombre||'—'} ${c.clientes?.apellidos||''}</div>
-        <div style="font-size:11px;opacity:0.8">${c.tipo||''} ${c.duracion_minutos?'· '+c.duracion_minutos+'min':''}</div>
+        <div style="font-size:11px;opacity:0.8">${c.tipo||''} ${c.duracion_min?'· '+c.duracion_min+'min':''}</div>
         ${c.notas?`<div style="font-size:10.5px;opacity:0.7;margin-top:2px">${c.notas}</div>`:''}
       </div>`;
     });
@@ -2815,7 +2823,7 @@ async function mostrarCitaPanel(id) {
         <div>
           <div style="font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Fecha y hora</div>
           <div style="font-size:14px;font-weight:500;color:var(--text)">${new Date(cita.fecha_hora).toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
-          <div style="font-size:13px;color:var(--text2)">${new Date(cita.fecha_hora).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})} ${cita.duracion_minutos?'· '+cita.duracion_minutos+' min':''}</div>
+          <div style="font-size:13px;color:var(--text2)">${new Date(cita.fecha_hora).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})} ${cita.duracion_min?'· '+cita.duracion_min+' min':''}</div>
         </div>
       </div>
       ${cita.lugar?`<div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:var(--bg3);border-radius:8px"><span style="font-size:18px">📍</span><div><div style="font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Lugar</div><div style="font-size:13px;color:var(--text)">${cita.lugar}</div></div></div>`:''}
@@ -2870,14 +2878,17 @@ window.loadCitas = async function() {
 window.guardarCita = async function() {
   const id = document.getElementById('cit-id').value;
   const lugarVal = document.getElementById('cit-lugar')?.value||'';
+  const cliSelec = allClients.find(c=>c.id===document.getElementById('cit-cliente').value);
   const datos = {
     cliente_id: document.getElementById('cit-cliente').value,
     tipo: document.getElementById('cit-tipo').value,
+    titulo: (cliSelec ? cliSelec.nombre+' '+cliSelec.apellidos : 'Cita') + ' — ' + (document.getElementById('cit-tipo').value||''),
     fecha_hora: document.getElementById('cit-fecha').value,
-    duracion_minutos: parseInt(document.getElementById('cit-duracion').value) || 30,
-    notas: document.getElementById('cit-notas').value
+    duracion_min: parseInt(document.getElementById('cit-duracion').value) || 30,
+    notas: document.getElementById('cit-notas').value||null,
+    lugar: lugarVal||null,
+    creado_por: currentUser?.id||null
   };
-  if(lugarVal) datos.lugar = lugarVal;  // solo si la columna existe
   if (!datos.cliente_id || !datos.fecha_hora) { toast('Cliente y fecha son obligatorios', 'warn'); return; }
   try {
     if (id) await db.from('citas').update(datos).eq('id', id);
@@ -2950,7 +2961,7 @@ Le recordamos que tiene una cita con nuestro despacho ${labelTiempo||'próximame
 📅 Fecha: ${fechaFormato}
 ⏰ Hora: ${horaFormato}
 📍 Lugar: ${lugar}
-🕐 Duración aproximada: ${cita.duracion_minutos || 30} minutos
+🕐 Duración aproximada: ${cita.duracion_min || 30} minutos
 
 ${cita.notas ? 'ℹ️ ' + cita.notas + '\n\n' : ''}Si necesita cancelar o modificar la cita, contáctenos con antelación.
 
