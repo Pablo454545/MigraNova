@@ -407,6 +407,14 @@ tr:hover td { background: rgba(37,99,235,0.03); }
 
 .normativa-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;color:#1e40af;}
 .normativa-box ul{margin-left:16px;margin-top:6px;line-height:1.8;}
+
+/* EMAIL */
+.email-item{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:9px;background:var(--bg3);border:1px solid var(--border);margin-bottom:7px;}
+.email-icon{font-size:20px;flex-shrink:0;}
+.email-asunto{font-size:13px;font-weight:500;color:var(--text);}
+.email-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+.email-estado-ok{font-size:10px;padding:2px 7px;border-radius:8px;background:#dcfce7;color:#166534;font-weight:600;}
+.email-estado-err{font-size:10px;padding:2px 7px;border-radius:8px;background:#fee2e2;color:#991b1b;font-weight:600;}
 </style>
 </head>
 <body>
@@ -450,6 +458,7 @@ tr:hover td { background: rgba(37,99,235,0.03); }
         <div class="nav-item" onclick="showPage('presupuestos')"><span class="icon">📝</span>Presupuestos</div>
         <div class="nav-item" onclick="showPage('facturas')"><span class="icon">💶</span>Facturación</div>
         <div class="nav-item" onclick="showPage('datos-fiscales')"><span class="icon">🏢</span>Datos Fiscales</div>
+        <div class="nav-item" onclick="showPage('email-config')"><span class="icon">📧</span>Email</div>
       </div>
 
       <div class="nav-section">
@@ -713,6 +722,211 @@ tr:hover td { background: rgba(37,99,235,0.03); }
 
       </div>
 
+
+      <!-- EMAIL CONFIG -->
+      <div class="page" id="page-email-config">
+
+        <div class="grid-2">
+          <!-- CONFIGURACIÓN -->
+          <div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:14px">⚙️ Configuración del servicio de email</div>
+              <div class="alert info" style="margin-bottom:16px;font-size:12px">
+                ℹ️ MigraNova usa <strong>Resend</strong> para enviar emails. Es gratis hasta 3.000 emails/mes.
+                Crea tu cuenta gratuita en <strong>resend.com</strong> y pega tu API Key aquí.
+              </div>
+              <div class="form-grid">
+                <div class="form-group full">
+                  <label>API Key de Resend *</label>
+                  <input type="password" id="email-api-key" placeholder="re_xxxxxxxxxxxxxxxxxxxx">
+                  <div style="font-size:11px;color:var(--text3);margin-top:4px">
+                    Obtén tu clave en resend.com → API Keys → Create API Key
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Email remitente *</label>
+                  <input id="email-from" placeholder="despacho@tudominio.com">
+                  <div style="font-size:11px;color:var(--text3);margin-top:4px">
+                    Debe estar verificado en Resend. Para pruebas: onboarding@resend.dev
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Nombre remitente</label>
+                  <input id="email-from-name" placeholder="MigraNova Despacho">
+                </div>
+                <div class="form-group full">
+                  <label>Firma del email</label>
+                  <textarea id="email-firma" style="min-height:80px" placeholder="Atentamente,&#10;MigraNova — Gestión de Extranjería&#10;Tel: +34 91 000 00 00"></textarea>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
+                <button class="btn btn-ghost btn-sm" onclick="testEmail()">📤 Enviar email de prueba</button>
+                <button class="btn btn-primary btn-sm" onclick="guardarConfigEmail()">💾 Guardar configuración</button>
+              </div>
+            </div>
+
+            <!-- PLANTILLAS -->
+            <div class="card">
+              <div class="card-title" style="margin-bottom:14px">📝 Plantillas de email</div>
+              <div id="email-tabs-nav" style="display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:4px;border:1px solid var(--border);margin-bottom:14px">
+                <button class="fact-tab active" onclick="showEmailTab('presupuesto')">Presupuesto</button>
+                <button class="fact-tab" onclick="showEmailTab('estado')">Cambio estado</button>
+                <button class="fact-tab" onclick="showEmailTab('invitacion')">Invitación portal</button>
+                <button class="fact-tab" onclick="showEmailTab('docs')">Docs pendientes</button>
+                <button class="fact-tab" onclick="showEmailTab('cita')">Cita</button>
+              </div>
+
+              <div id="email-tab-presupuesto">
+                <div class="form-group" style="margin-bottom:10px">
+                  <label>Asunto</label>
+                  <input id="tpl-presupuesto-asunto" value="Presupuesto {{numero}} — {{despacho}}">
+                </div>
+                <div class="form-group">
+                  <label>Cuerpo del mensaje</label>
+                  <textarea id="tpl-presupuesto-body" style="min-height:140px">Estimado/a {{cliente}},
+
+Le enviamos el presupuesto {{numero}} por importe de {{total}} € (IVA incluido) correspondiente a los servicios de {{tramite}}.
+
+El presupuesto tiene una validez de {{validez}} días.
+
+Para aceptarlo o consultarnos cualquier duda, no dude en contactarnos.
+
+{{firma}}</textarea>
+                </div>
+              </div>
+
+              <div id="email-tab-estado" style="display:none">
+                <div class="form-group" style="margin-bottom:10px">
+                  <label>Asunto</label>
+                  <input id="tpl-estado-asunto" value="Actualización de su expediente {{numero}} — {{despacho}}">
+                </div>
+                <div class="form-group">
+                  <label>Cuerpo del mensaje</label>
+                  <textarea id="tpl-estado-body" style="min-height:140px">Estimado/a {{cliente}},
+
+Le informamos de que su expediente {{numero}} ({{tramite}}) ha pasado al estado: {{estado}}.
+
+Si tiene alguna pregunta, estamos a su disposición.
+
+{{firma}}</textarea>
+                </div>
+              </div>
+
+              <div id="email-tab-invitacion" style="display:none">
+                <div class="form-group" style="margin-bottom:10px">
+                  <label>Asunto</label>
+                  <input id="tpl-invitacion-asunto" value="Acceso a su portal de documentación — {{despacho}}">
+                </div>
+                <div class="form-group">
+                  <label>Cuerpo del mensaje</label>
+                  <textarea id="tpl-invitacion-body" style="min-height:160px">Estimado/a {{cliente}},
+
+Le facilitamos el acceso a su portal privado de documentación donde podrá subir los documentos necesarios para su trámite de {{tramite}}.
+
+🔗 URL del portal: {{url_portal}}
+📧 Su email de acceso: {{email}}
+🔑 Contraseña: {{password}}
+
+El acceso es válido durante 90 días.
+
+Por favor, no comparta estas credenciales con terceros.
+
+{{firma}}</textarea>
+                </div>
+              </div>
+
+              <div id="email-tab-docs" style="display:none">
+                <div class="form-group" style="margin-bottom:10px">
+                  <label>Asunto</label>
+                  <input id="tpl-docs-asunto" value="Documentación pendiente — Expediente {{numero}}">
+                </div>
+                <div class="form-group">
+                  <label>Cuerpo del mensaje</label>
+                  <textarea id="tpl-docs-body" style="min-height:140px">Estimado/a {{cliente}},
+
+Le recordamos que su expediente {{numero}} ({{tramite}}) tiene documentación pendiente de entrega.
+
+Por favor, acceda a su portal para subir los documentos lo antes posible:
+🔗 {{url_portal}}
+
+{{firma}}</textarea>
+                </div>
+              </div>
+
+              <div id="email-tab-cita" style="display:none">
+                <div class="form-group" style="margin-bottom:10px">
+                  <label>Asunto</label>
+                  <input id="tpl-cita-asunto" value="Confirmación de cita — {{despacho}}">
+                </div>
+                <div class="form-group">
+                  <label>Cuerpo del mensaje</label>
+                  <textarea id="tpl-cita-body" style="min-height:140px">Estimado/a {{cliente}},
+
+Le confirmamos su cita:
+
+📅 Fecha y hora: {{fecha_cita}}
+📍 Lugar: {{lugar}}
+📋 Motivo: {{tramite}}
+
+Si necesita cancelar o modificar la cita, contáctenos con antelación.
+
+{{firma}}</textarea>
+                </div>
+              </div>
+
+              <div style="display:flex;justify-content:flex-end;margin-top:12px">
+                <button class="btn btn-primary btn-sm" onclick="guardarPlantillas()">💾 Guardar plantillas</button>
+              </div>
+
+              <div style="margin-top:12px;padding:10px;background:var(--bg3);border-radius:8px;font-size:11px;color:var(--text3)">
+                <strong>Variables disponibles:</strong> {{cliente}} {{numero}} {{tramite}} {{total}} {{estado}} {{validez}} {{fecha_cita}} {{lugar}} {{url_portal}} {{email}} {{password}} {{despacho}} {{firma}}
+              </div>
+            </div>
+          </div>
+
+          <!-- HISTORIAL DE EMAILS -->
+          <div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:14px">📬 Emails enviados</div>
+              <div id="historial-emails"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+            </div>
+
+            <!-- ENVÍO RÁPIDO -->
+            <div class="card">
+              <div class="card-title" style="margin-bottom:14px">⚡ Envío rápido</div>
+              <div class="form-grid">
+                <div class="form-group full">
+                  <label>Destinatario</label>
+                  <select id="envio-cliente"></select>
+                </div>
+                <div class="form-group full">
+                  <label>Tipo de email</label>
+                  <select id="envio-tipo">
+                    <option value="presupuesto">Presupuesto</option>
+                    <option value="estado">Cambio de estado expediente</option>
+                    <option value="invitacion">Invitación portal cliente</option>
+                    <option value="docs">Recordatorio documentos</option>
+                    <option value="cita">Confirmación de cita</option>
+                    <option value="personalizado">Mensaje personalizado</option>
+                  </select>
+                </div>
+                <div class="form-group full" id="envio-personalizado-wrap" style="display:none">
+                  <label>Asunto</label>
+                  <input id="envio-asunto-custom" placeholder="Asunto del email">
+                </div>
+                <div class="form-group full">
+                  <label>Mensaje adicional (opcional)</label>
+                  <textarea id="envio-mensaje" placeholder="Añade aquí información específica para este cliente..." style="min-height:80px"></textarea>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:flex-end;margin-top:12px">
+                <button class="btn btn-primary" onclick="enviarEmailRapido()">📤 Enviar email</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </main>
 </div>
@@ -788,7 +1002,189 @@ tr:hover td { background: rgba(37,99,235,0.03); }
       <div class="form-grid">
         <div class="form-group"><label>Nombre *</label><input id="cli-nombre" placeholder="Nombre"></div>
         <div class="form-group"><label>Apellidos *</label><input id="cli-apellidos" placeholder="Apellidos"></div>
-        <div class="form-group"><label>Nacionalidad</label><input id="cli-nac" placeholder="Ej: Marroquí"></div>
+        <div class="form-group"><label>Nacionalidad</label><select id="cli-nac">
+            <option value="">Seleccionar nacionalidad...</option>
+            <option value="Afgana">Afgana</option>
+            <option value="Albania">Albania</option>
+            <option value="Alemana">Alemana</option>
+            <option value="Andorrana">Andorrana</option>
+            <option value="Angoleña">Angoleña</option>
+            <option value="Antiguense">Antiguense</option>
+            <option value="Árabe Saudí">Árabe Saudí</option>
+            <option value="Argelina">Argelina</option>
+            <option value="Argentina">Argentina</option>
+            <option value="Armenia">Armenia</option>
+            <option value="Australiana">Australiana</option>
+            <option value="Austriaca">Austriaca</option>
+            <option value="Azerbaiyana">Azerbaiyana</option>
+            <option value="Bahameña">Bahameña</option>
+            <option value="Bareiní">Bareiní</option>
+            <option value="Bangladesí">Bangladesí</option>
+            <option value="Barbadense">Barbadense</option>
+            <option value="Bielorrusa">Bielorrusa</option>
+            <option value="Belga">Belga</option>
+            <option value="Beliceña">Beliceña</option>
+            <option value="Beninesa">Beninesa</option>
+            <option value="Bhutanesa">Bhutanesa</option>
+            <option value="Boliviana">Boliviana</option>
+            <option value="Bosnia">Bosnia</option>
+            <option value="Botsuanesa">Botsuanesa</option>
+            <option value="Brasileña">Brasileña</option>
+            <option value="Bruneana">Bruneana</option>
+            <option value="Búlgara">Búlgara</option>
+            <option value="Burkinesa">Burkinesa</option>
+            <option value="Burundesa">Burundesa</option>
+            <option value="Caboverdiana">Caboverdiana</option>
+            <option value="Camboyanna">Camboyanna</option>
+            <option value="Camerunesa">Camerunesa</option>
+            <option value="Canadiense">Canadiense</option>
+            <option value="Catarí">Catarí</option>
+            <option value="Chadiana">Chadiana</option>
+            <option value="Chilena">Chilena</option>
+            <option value="China">China</option>
+            <option value="Chipriota">Chipriota</option>
+            <option value="Colombiana">Colombiana</option>
+            <option value="Comorense">Comorense</option>
+            <option value="Congoleña">Congoleña</option>
+            <option value="Costarricense">Costarricense</option>
+            <option value="Croata">Croata</option>
+            <option value="Cubana">Cubana</option>
+            <option value="Danesa">Danesa</option>
+            <option value="Dominicana">Dominicana</option>
+            <option value="Ecuatoguineana">Ecuatoguineana</option>
+            <option value="Ecuatoriana">Ecuatoriana</option>
+            <option value="Egipcia">Egipcia</option>
+            <option value="Salvadoreña">Salvadoreña</option>
+            <option value="Emiratí">Emiratí</option>
+            <option value="Eritrea">Eritrea</option>
+            <option value="Eslovaca">Eslovaca</option>
+            <option value="Eslovena">Eslovena</option>
+            <option value="Española">Española</option>
+            <option value="Estadounidense">Estadounidense</option>
+            <option value="Estonia">Estonia</option>
+            <option value="Etíope">Etíope</option>
+            <option value="Fiyiana">Fiyiana</option>
+            <option value="Filipina">Filipina</option>
+            <option value="Finlandesa">Finlandesa</option>
+            <option value="Francesa">Francesa</option>
+            <option value="Gabonesa">Gabonesa</option>
+            <option value="Gambiana">Gambiana</option>
+            <option value="Georgiana">Georgiana</option>
+            <option value="Ghanesa">Ghanesa</option>
+            <option value="Granadina">Granadina</option>
+            <option value="Griega">Griega</option>
+            <option value="Guatemalteca">Guatemalteca</option>
+            <option value="Guineana">Guineana</option>
+            <option value="Guineano-bisauense">Guineano-bisauense</option>
+            <option value="Guyanesa">Guyanesa</option>
+            <option value="Haitiana">Haitiana</option>
+            <option value="Hondureña">Hondureña</option>
+            <option value="Húngara">Húngara</option>
+            <option value="Indía">Indía</option>
+            <option value="Indonesia">Indonesia</option>
+            <option value="Iraní">Iraní</option>
+            <option value="Iraquí">Iraquí</option>
+            <option value="Irlandesa">Irlandesa</option>
+            <option value="Islandesa">Islandesa</option>
+            <option value="Israelí">Israelí</option>
+            <option value="Italiana">Italiana</option>
+            <option value="Jamaicana">Jamaicana</option>
+            <option value="Japonesa">Japonesa</option>
+            <option value="Jordana">Jordana</option>
+            <option value="Kazaja">Kazaja</option>
+            <option value="Keniana">Keniana</option>
+            <option value="Kirguís">Kirguís</option>
+            <option value="Kiribatiana">Kiribatiana</option>
+            <option value="Kuwaití">Kuwaití</option>
+            <option value="Laosiana">Laosiana</option>
+            <option value="Lesotense">Lesotense</option>
+            <option value="Letona">Letona</option>
+            <option value="Libanesa">Libanesa</option>
+            <option value="Liberiana">Liberiana</option>
+            <option value="Libia">Libia</option>
+            <option value="Liechtensteiniana">Liechtensteiniana</option>
+            <option value="Lituana">Lituana</option>
+            <option value="Luxemburguesa">Luxemburguesa</option>
+            <option value="Macedónica">Macedónica</option>
+            <option value="Malgache">Malgache</option>
+            <option value="Malauí">Malauí</option>
+            <option value="Malaya">Malaya</option>
+            <option value="Maldiva">Maldiva</option>
+            <option value="Maliense">Maliense</option>
+            <option value="Maltesa">Maltesa</option>
+            <option value="Marshalesa">Marshalesa</option>
+            <option value="Mauritana">Mauritana</option>
+            <option value="Mauriciana">Mauriciana</option>
+            <option value="Mexicana">Mexicana</option>
+            <option value="Micronesia">Micronesia</option>
+            <option value="Moldava">Moldava</option>
+            <option value="Monegasca">Monegasca</option>
+            <option value="Mongola">Mongola</option>
+            <option value="Montenegrina">Montenegrina</option>
+            <option value="Mozambiqueña">Mozambiqueña</option>
+            <option value="Namibia">Namibia</option>
+            <option value="Nauruana">Nauruana</option>
+            <option value="Nepalesa">Nepalesa</option>
+            <option value="Nicaragüense">Nicaragüense</option>
+            <option value="Nigerina">Nigerina</option>
+            <option value="Nigeriana">Nigeriana</option>
+            <option value="Noruega">Noruega</option>
+            <option value="Neozelandesa">Neozelandesa</option>
+            <option value="Omaní">Omaní</option>
+            <option value="Neerlandesa">Neerlandesa</option>
+            <option value="Pakistaní">Pakistaní</option>
+            <option value="Palauana">Palauana</option>
+            <option value="Palestina">Palestina</option>
+            <option value="Panameña">Panameña</option>
+            <option value="Papuana">Papuana</option>
+            <option value="Paraguaya">Paraguaya</option>
+            <option value="Peruana">Peruana</option>
+            <option value="Polaca">Polaca</option>
+            <option value="Portuguesa">Portuguesa</option>
+            <option value="Ruandesa">Ruandesa</option>
+            <option value="Rumana">Rumana</option>
+            <option value="Rusa">Rusa</option>
+            <option value="Samoana">Samoana</option>
+            <option value="Sanmarinense">Sanmarinense</option>
+            <option value="Santotomense">Santotomense</option>
+            <option value="Senegalesa">Senegalesa</option>
+            <option value="Serbia">Serbia</option>
+            <option value="Seychellense">Seychellense</option>
+            <option value="Sierraleonesa">Sierraleonesa</option>
+            <option value="Singapurense">Singapurense</option>
+            <option value="Siria">Siria</option>
+            <option value="Somalí">Somalí</option>
+            <option value="Sri Lankesa">Sri Lankesa</option>
+            <option value="Suazi">Suazi</option>
+            <option value="Sudafricana">Sudafricana</option>
+            <option value="Sudanesa">Sudanesa</option>
+            <option value="Sudanesa del Sur">Sudanesa del Sur</option>
+            <option value="Sueca">Sueca</option>
+            <option value="Suiza">Suiza</option>
+            <option value="Surinamesa">Surinamesa</option>
+            <option value="Tailandesa">Tailandesa</option>
+            <option value="Tanzana">Tanzana</option>
+            <option value="Tayika">Tayika</option>
+            <option value="Timorense">Timorense</option>
+            <option value="Togolesa">Togolesa</option>
+            <option value="Tongana">Tongana</option>
+            <option value="Trinitense">Trinitense</option>
+            <option value="Tunecina">Tunecina</option>
+            <option value="Turca">Turca</option>
+            <option value="Turkmena">Turkmena</option>
+            <option value="Tuvaluana">Tuvaluana</option>
+            <option value="Ugandesa">Ugandesa</option>
+            <option value="Ucraniana">Ucraniana</option>
+            <option value="Uruguaya">Uruguaya</option>
+            <option value="Uzbeka">Uzbeka</option>
+            <option value="Vanuatense">Vanuatense</option>
+            <option value="Venezolana">Venezolana</option>
+            <option value="Vietnamita">Vietnamita</option>
+            <option value="Yemení">Yemení</option>
+            <option value="Yibutiana">Yibutiana</option>
+            <option value="Zambiana">Zambiana</option>
+            <option value="Zimbabuense">Zimbabuense</option>
+          </select></div>
         <div class="form-group"><label>Fecha nacimiento</label><input type="date" id="cli-fn"></div>
         <div class="form-group"><label>Pasaporte</label><input id="cli-pas" placeholder="AB1234567"></div>
         <div class="form-group"><label>NIE</label><input id="cli-nie" placeholder="X1234567A"></div>
@@ -956,6 +1352,7 @@ tr:hover td { background: rgba(37,99,235,0.03); }
       <div class="modal-title" id="ver-pres-title">Vista previa del presupuesto</div>
       <div style="display:flex;gap:7px;align-items:center">
         <button class="btn btn-ghost btn-sm" onclick="editarPresActual()">✏️ Editar</button>
+        <button class="btn btn-ghost btn-sm" onclick="enviarEmailPresupuesto(presActual?.id)" title="Enviar presupuesto por email">📧 Enviar</button>
         <button class="btn btn-success btn-sm" id="btn-convertir-factura" onclick="convertirEnFactura()">💶 Convertir en factura</button>
         <div class="modal-close" onclick="closeModal('ver-pres')">✕</div>
       </div>
@@ -1072,7 +1469,7 @@ function showLoginErr(m){const e=document.getElementById('login-error');e.textCo
 // ══════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════
-const TITLES={dashboard:'Dashboard',expedientes:'Expedientes',clientes:'Clientes',kanban:'Estado de Trámites',tareas:'Tareas',citas:'Citas',presupuestos:'Presupuestos',facturas:'Facturación',config:'Configuración de Trámites','datos-fiscales':'Datos Fiscales & VeriFactu','control-horario':'Control Horario',invitaciones:'Portal Clientes','chat-despacho':'Chat con Clientes'};
+const TITLES={dashboard:'Dashboard',expedientes:'Expedientes',clientes:'Clientes',kanban:'Estado de Trámites',tareas:'Tareas',citas:'Citas',presupuestos:'Presupuestos',facturas:'Facturación',config:'Configuración de Trámites','datos-fiscales':'Datos Fiscales & VeriFactu','control-horario':'Control Horario','email-config':'Configuración de Email',invitaciones:'Portal Clientes','chat-despacho':'Chat con Clientes'};
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -1307,7 +1704,7 @@ function editarCli(id){
   const c=allClients.find(x=>x.id===id);if(!c)return;
   document.getElementById('modal-cli-title').textContent='Editar Cliente';
   document.getElementById('cli-id').value=c.id;
-  ['cli-nombre','cli-apellidos','cli-nac','cli-pas','cli-nie','cli-tel','cli-email','cli-dir','cli-obs'].forEach(f=>{const el=document.getElementById(f);if(el)el.value=c[{n:'nombre',a:'apellidos',n2:'nacionalidad',p:'pasaporte',i:'nie',t:'telefono',e:'email',d:'direccion',o:'observaciones'}[f.replace('cli-','')]||f.replace('cli-','')]||'';});
+  ['cli-nombre','cli-apellidos','cli-nac','cli-pas','cli-nie','cli-tel','cli-email','cli-dir','cli-obs'].forEach(f=>{const el=document.getElementById(f);if(el)el.value=c[{nombre:'nombre',apellidos:'apellidos',nac:'nacionalidad',pas:'pasaporte',nie:'nie',tel:'telefono',email:'email',dir:'direccion',obs:'observaciones'}[f.replace('cli-','')]||f.replace('cli-','')]||'';});
   document.getElementById('cli-fn').value=c.fecha_nacimiento||'';
   openModal('cliente');
 }
@@ -1695,13 +2092,7 @@ async function crearInvitacion(){
   loadInvitaciones();
   toast('Invitación creada. Envía la URL del portal y la contraseña al cliente.','success');
   setTimeout(()=>{
-    alert('✅ Invitación creada.
-
-📧 Email del cliente: '+email+'
-🔑 Contraseña: '+pass+'
-🔗 URL del portal: migranova-cliente.html
-
-⏱ Válida 90 días.');
+    alert('✅ Invitación creada.\n\n📧 Email: '+email+'\n🔑 Contraseña: '+pass+'\n🔗 Portal: migranova-cliente.html\n\n⏱ Válida 90 días.');
   },500);
 }
 
@@ -2952,6 +3343,387 @@ function fTime(d) {
   if (!d) return '—';
   return new Date(d).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }
+
+
+// ══════════════════════════════════════════════
+// MÓDULO DE EMAIL — Resend API
+// ══════════════════════════════════════════════
+
+let emailConfig = null;
+let emailPlantillas = {};
+
+// ── CONFIGURACIÓN ──
+async function loadEmailConfig() {
+  // Cargar desde localStorage
+  const saved = localStorage.getItem('migranova_email_config');
+  if (saved) {
+    emailConfig = JSON.parse(saved);
+    if (document.getElementById('email-api-key')) {
+      document.getElementById('email-api-key').value = emailConfig.apiKey || '';
+      document.getElementById('email-from').value = emailConfig.from || '';
+      document.getElementById('email-from-name').value = emailConfig.fromName || '';
+      document.getElementById('email-firma').value = emailConfig.firma || '';
+    }
+  }
+  const savedTpl = localStorage.getItem('migranova_email_plantillas');
+  if (savedTpl) {
+    emailPlantillas = JSON.parse(savedTpl);
+    cargarPlantillasEnFormulario();
+  }
+  loadHistorialEmails();
+  populateCli('envio-cliente');
+  document.getElementById('envio-tipo').addEventListener('change', function() {
+    const custom = document.getElementById('envio-personalizado-wrap');
+    if (custom) custom.style.display = this.value === 'personalizado' ? 'block' : 'none';
+  });
+}
+
+function guardarConfigEmail() {
+  const apiKey = document.getElementById('email-api-key').value.trim();
+  const from = document.getElementById('email-from').value.trim();
+  if (!apiKey || !from) { toast('API Key y email remitente son obligatorios', 'warn'); return; }
+  emailConfig = {
+    apiKey,
+    from,
+    fromName: document.getElementById('email-from-name').value.trim() || 'MigraNova',
+    firma: document.getElementById('email-firma').value.trim()
+  };
+  localStorage.setItem('migranova_email_config', JSON.stringify(emailConfig));
+  toast('Configuración guardada', 'success');
+}
+
+function guardarPlantillas() {
+  emailPlantillas = {
+    presupuesto: {
+      asunto: document.getElementById('tpl-presupuesto-asunto').value,
+      body: document.getElementById('tpl-presupuesto-body').value
+    },
+    estado: {
+      asunto: document.getElementById('tpl-estado-asunto').value,
+      body: document.getElementById('tpl-estado-body').value
+    },
+    invitacion: {
+      asunto: document.getElementById('tpl-invitacion-asunto').value,
+      body: document.getElementById('tpl-invitacion-body').value
+    },
+    docs: {
+      asunto: document.getElementById('tpl-docs-asunto').value,
+      body: document.getElementById('tpl-docs-body').value
+    },
+    cita: {
+      asunto: document.getElementById('tpl-cita-asunto').value,
+      body: document.getElementById('tpl-cita-body').value
+    }
+  };
+  localStorage.setItem('migranova_email_plantillas', JSON.stringify(emailPlantillas));
+  toast('Plantillas guardadas', 'success');
+}
+
+function cargarPlantillasEnFormulario() {
+  Object.entries(emailPlantillas).forEach(([tipo, tpl]) => {
+    const asuntoEl = document.getElementById(`tpl-${tipo}-asunto`);
+    const bodyEl = document.getElementById(`tpl-${tipo}-body`);
+    if (asuntoEl && tpl.asunto) asuntoEl.value = tpl.asunto;
+    if (bodyEl && tpl.body) bodyEl.value = tpl.body;
+  });
+}
+
+function showEmailTab(tab) {
+  ['presupuesto','estado','invitacion','docs','cita'].forEach(t => {
+    const el = document.getElementById('email-tab-' + t);
+    if (el) el.style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('#email-tabs-nav .fact-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', ['presupuesto','estado','invitacion','docs','cita'][i] === tab);
+  });
+}
+
+// ── ENVÍO DE EMAIL ──
+async function enviarEmail({ to, toName, asunto, body, tipo = 'personalizado' }) {
+  if (!emailConfig?.apiKey) {
+    toast('Configura primero el email en ⚙️ Email', 'warn');
+    showPage('email-config');
+    return false;
+  }
+
+  const htmlBody = `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px">
+      <div style="background:#2563eb;padding:20px;border-radius:8px 8px 0 0">
+        <h1 style="color:#fff;margin:0;font-size:20px">MigraNova</h1>
+        <p style="color:#bfdbfe;margin:4px 0 0;font-size:12px">Gestión de Extranjería</p>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;padding:28px;border-radius:0 0 8px 8px">
+        ${body.replace(/\n/g, '<br>')}
+      </div>
+      <p style="font-size:11px;color:#94a3b8;text-align:center;margin-top:12px">
+        Este email ha sido enviado desde MigraNova · Sistema de Gestión de Extranjería
+      </p>
+    </div>`;
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${emailConfig.apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: emailConfig.fromName ? `${emailConfig.fromName} <${emailConfig.from}>` : emailConfig.from,
+        to: toName ? [`${toName} <${to}>`] : [to],
+        subject: asunto,
+        html: htmlBody,
+        text: body
+      })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // Guardar en historial local
+      const historial = JSON.parse(localStorage.getItem('migranova_email_historial') || '[]');
+      historial.unshift({
+        id: data.id,
+        to, toName, asunto, tipo,
+        fecha: new Date().toISOString(),
+        estado: 'enviado'
+      });
+      localStorage.setItem('migranova_email_historial', JSON.stringify(historial.slice(0, 100)));
+      loadHistorialEmails();
+      return true;
+    } else {
+      console.error('Resend error:', data);
+      const historial = JSON.parse(localStorage.getItem('migranova_email_historial') || '[]');
+      historial.unshift({ to, toName, asunto, tipo, fecha: new Date().toISOString(), estado: 'error', error: data.message });
+      localStorage.setItem('migranova_email_historial', JSON.stringify(historial.slice(0, 100)));
+      loadHistorialEmails();
+      toast('Error al enviar: ' + (data.message || 'Error desconocido'), 'danger');
+      return false;
+    }
+  } catch (e) {
+    toast('Error de conexión con Resend: ' + e.message, 'danger');
+    return false;
+  }
+}
+
+// ── PLANTILLA → TEXTO ──
+function aplicarPlantilla(tipo, vars = {}) {
+  const tpl = emailPlantillas[tipo];
+  const defaultTpls = {
+    presupuesto: {
+      asunto: 'Presupuesto {{numero}} — {{despacho}}',
+      body: 'Estimado/a {{cliente}},\n\nLe enviamos el presupuesto {{numero}} por importe de {{total}} € (IVA incluido) para los servicios de {{tramite}}.\n\nValidez: {{validez}} días.\n\n{{firma}}'
+    },
+    estado: {
+      asunto: 'Actualización expediente {{numero}} — {{despacho}}',
+      body: 'Estimado/a {{cliente}},\n\nSu expediente {{numero}} ({{tramite}}) ha pasado al estado: {{estado}}.\n\n{{firma}}'
+    },
+    invitacion: {
+      asunto: 'Acceso a su portal de documentación — {{despacho}}',
+      body: 'Estimado/a {{cliente}},\n\nLe facilitamos el acceso a su portal privado:\n\n🔗 URL: {{url_portal}}\n📧 Email: {{email}}\n🔑 Contraseña: {{password}}\n\nVálido 90 días.\n\n{{firma}}'
+    },
+    docs: {
+      asunto: 'Documentación pendiente — Expediente {{numero}}',
+      body: 'Estimado/a {{cliente}},\n\nLe recordamos que su expediente {{numero}} tiene documentación pendiente.\n\n🔗 {{url_portal}}\n\n{{firma}}'
+    },
+    cita: {
+      asunto: 'Confirmación de cita — {{despacho}}',
+      body: 'Estimado/a {{cliente}},\n\n📅 {{fecha_cita}}\n📍 {{lugar}}\n📋 {{tramite}}\n\n{{firma}}'
+    }
+  };
+
+  const fuente = (tpl && tpl.asunto) ? tpl : defaultTpls[tipo] || { asunto: '', body: '' };
+  const despacho = datosFiscales?.nombre_comercial || datosFiscales?.razon_social || 'MigraNova';
+  const firma = emailConfig?.firma || `Atentamente,\n${despacho}`;
+
+  const reemplazar = (str) => str
+    .replace(/{{despacho}}/g, despacho)
+    .replace(/{{firma}}/g, firma)
+    .replace(/{{cliente}}/g, vars.cliente || '')
+    .replace(/{{numero}}/g, vars.numero || '')
+    .replace(/{{tramite}}/g, vars.tramite || '')
+    .replace(/{{total}}/g, vars.total || '')
+    .replace(/{{estado}}/g, vars.estado || '')
+    .replace(/{{validez}}/g, vars.validez || '30')
+    .replace(/{{fecha_cita}}/g, vars.fecha_cita || '')
+    .replace(/{{lugar}}/g, vars.lugar || '')
+    .replace(/{{url_portal}}/g, vars.url_portal || window.location.href.replace('migranova-despacho.html','migranova-cliente.html'))
+    .replace(/{{email}}/g, vars.email || '')
+    .replace(/{{password}}/g, vars.password || '');
+
+  return { asunto: reemplazar(fuente.asunto), body: reemplazar(fuente.body) };
+}
+
+// ── ENVÍO RÁPIDO ──
+async function enviarEmailRapido() {
+  const cliId = document.getElementById('envio-cliente').value;
+  const tipo = document.getElementById('envio-tipo').value;
+  const msgExtra = document.getElementById('envio-mensaje').value.trim();
+
+  if (!cliId) { toast('Selecciona un cliente', 'warn'); return; }
+  const cli = allClients.find(c => c.id === cliId);
+  if (!cli) { toast('Cliente no encontrado', 'warn'); return; }
+  if (!cli.email) { toast('Este cliente no tiene email registrado', 'warn'); return; }
+
+  // Obtener último expediente del cliente
+  const { data: exps } = await db.from('expedientes').select('*').eq('cliente_id', cliId).order('created_at', { ascending: false }).limit(1);
+  const exp = exps?.[0];
+
+  let asunto, body;
+  if (tipo === 'personalizado') {
+    asunto = document.getElementById('envio-asunto-custom').value.trim() || 'Mensaje de MigraNova';
+    body = msgExtra || 'Sin contenido';
+  } else {
+    const tpl = aplicarPlantilla(tipo, {
+      cliente: `${cli.nombre} ${cli.apellidos}`,
+      numero: exp?.numero || '',
+      tramite: exp?.tipo_tramite || '',
+      total: '', validez: '30', estado: exp ? sLabel(exp.estado) : ''
+    });
+    asunto = tpl.asunto;
+    body = (msgExtra ? msgExtra + '\n\n' : '') + tpl.body;
+  }
+
+  const btn = document.querySelector('#page-email-config .btn-primary:last-child');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Enviando...'; }
+
+  const ok = await enviarEmail({
+    to: cli.email,
+    toName: `${cli.nombre} ${cli.apellidos}`,
+    asunto, body, tipo
+  });
+
+  if (btn) { btn.disabled = false; btn.textContent = '📤 Enviar email'; }
+  if (ok) {
+    toast(`Email enviado a ${cli.email}`, 'success');
+    document.getElementById('envio-mensaje').value = '';
+  }
+}
+
+// ── ENVÍO DESDE PRESUPUESTO ──
+async function enviarEmailPresupuesto(presId) {
+  const { data: p } = await db.from('presupuestos').select('*,clientes(*)').eq('id', presId).single();
+  if (!p) return;
+  if (!p.clientes?.email) { toast('El cliente no tiene email registrado', 'warn'); return; }
+
+  const tpl = aplicarPlantilla('presupuesto', {
+    cliente: `${p.clientes.nombre} ${p.clientes.apellidos}`,
+    numero: p.numero,
+    tramite: p.titulo,
+    total: (p.total || 0).toFixed(2),
+    validez: p.validez_dias || 30
+  });
+
+  const ok = await enviarEmail({
+    to: p.clientes.email,
+    toName: `${p.clientes.nombre} ${p.clientes.apellidos}`,
+    asunto: tpl.asunto,
+    body: tpl.body,
+    tipo: 'presupuesto'
+  });
+
+  if (ok) toast(`Presupuesto enviado a ${p.clientes.email}`, 'success');
+}
+
+// ── ENVÍO INVITACIÓN PORTAL ──
+async function enviarEmailInvitacion(invId) {
+  const { data: inv } = await db.from('invitaciones').select('*,clientes(*),expedientes(tipo_tramite)').eq('id', invId).single();
+  if (!inv || !inv.email) { toast('Sin email de invitación', 'warn'); return; }
+
+  const pass = prompt('¿Cuál es la contraseña que configuraste para este cliente?');
+  if (!pass) return;
+
+  const tpl = aplicarPlantilla('invitacion', {
+    cliente: `${inv.clientes?.nombre || ''} ${inv.clientes?.apellidos || ''}`,
+    tramite: inv.expedientes?.tipo_tramite || '',
+    email: inv.email,
+    password: pass,
+    url_portal: window.location.href.replace('migranova-despacho.html', 'migranova-cliente.html')
+  });
+
+  const ok = await enviarEmail({ to: inv.email, asunto: tpl.asunto, body: tpl.body, tipo: 'invitacion' });
+  if (ok) toast(`Invitación enviada a ${inv.email}`, 'success');
+}
+
+// ── ENVÍO CAMBIO ESTADO EXPEDIENTE ──
+async function enviarEmailEstado(expId) {
+  const { data: exp } = await db.from('expedientes').select('*,clientes(*)').eq('id', expId).single();
+  if (!exp || !exp.clientes?.email) { toast('El cliente no tiene email registrado', 'warn'); return; }
+
+  const tpl = aplicarPlantilla('estado', {
+    cliente: `${exp.clientes.nombre} ${exp.clientes.apellidos}`,
+    numero: exp.numero,
+    tramite: exp.tipo_tramite,
+    estado: sLabel(exp.estado)
+  });
+
+  const ok = await enviarEmail({
+    to: exp.clientes.email,
+    toName: `${exp.clientes.nombre} ${exp.clientes.apellidos}`,
+    asunto: tpl.asunto, body: tpl.body, tipo: 'estado'
+  });
+  if (ok) toast(`Notificación enviada a ${exp.clientes.email}`, 'success');
+}
+
+// ── TEST EMAIL ──
+async function testEmail() {
+  const apiKey = document.getElementById('email-api-key').value.trim();
+  const from = document.getElementById('email-from').value.trim();
+  if (!apiKey || !from) { toast('Rellena la API Key y el email remitente primero', 'warn'); return; }
+  emailConfig = { apiKey, from, fromName: document.getElementById('email-from-name').value.trim() || 'MigraNova', firma: document.getElementById('email-firma').value.trim() };
+
+  const destino = prompt('¿A qué email quieres enviar el test?', from);
+  if (!destino) return;
+
+  const ok = await enviarEmail({
+    to: destino,
+    asunto: '✅ Test de configuración — MigraNova',
+    body: 'Este es un email de prueba enviado desde MigraNova.\n\nLa configuración de email funciona correctamente.\n\n' + (emailConfig.firma || ''),
+    tipo: 'test'
+  });
+  if (ok) toast('Email de prueba enviado correctamente', 'success');
+}
+
+// ── HISTORIAL ──
+function loadHistorialEmails() {
+  const el = document.getElementById('historial-emails');
+  if (!el) return;
+  const historial = JSON.parse(localStorage.getItem('migranova_email_historial') || '[]');
+  if (!historial.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:10px">Sin emails enviados aún.</div>';
+    return;
+  }
+  el.innerHTML = historial.slice(0, 20).map(e => `
+    <div class="email-item">
+      <div class="email-icon">📧</div>
+      <div style="flex:1">
+        <div class="email-asunto">${e.asunto}</div>
+        <div class="email-meta">Para: ${e.toName || ''} &lt;${e.to}&gt; · ${fDate(e.fecha)}</div>
+      </div>
+      <span class="${e.estado === 'enviado' ? 'email-estado-ok' : 'email-estado-err'}">
+        ${e.estado === 'enviado' ? '✓ Enviado' : '✗ Error'}
+      </span>
+    </div>`).join('');
+}
+
+// ── OVERRIDE showPage ──
+const _showPageEmail = window.showPage;
+window.showPage = function(id) {
+  _showPageEmail(id);
+  if (id === 'email-config') {
+    loadEmailConfig();
+    if (!allClients.length) loadClients();
+  }
+};
+
+// Cargar config al iniciar app
+const _showAppEmail = window.showApp;
+window.showApp = function() {
+  _showAppEmail();
+  const saved = localStorage.getItem('migranova_email_config');
+  if (saved) emailConfig = JSON.parse(saved);
+  const savedTpl = localStorage.getItem('migranova_email_plantillas');
+  if (savedTpl) emailPlantillas = JSON.parse(savedTpl);
+};
 
 </body>
 </html>
