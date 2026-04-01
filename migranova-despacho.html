@@ -982,10 +982,67 @@ Tiene documentación pendiente para el expediente {{numero}}.
         <div class="form-group"><label>Tipo de Trámite *</label>
           <select id="exp-tipo">
             <option value="">Seleccionar trámite...</option>
-            <option>NIE Lucrativo</option><option>NIE No Lucrativo</option><option>NIE Estudiante</option>
-            <option>Arraigo Social</option><option>Arraigo Sociolaboral</option><option>Arraigo Familiar</option>
-            <option>Renovacion TIE</option><option>Residencia Permanente</option><option>Reagrupacion Familiar</option>
-            <option>Nacionalidad</option><option>Asilo</option><option>Regularizacion 2026</option>
+            <option>NIE Lucrativo</option>
+            <option>NIE No Lucrativo</option>
+            <option>Arraigo Social</option>
+            <option>Arraigo Sociolaboral</option>
+            <option>Arraigo Familiar</option>
+            <option>Renovacion TIE</option>
+            <option>Residencia Permanente</option>
+            <option>Reagrupacion Familiar</option>
+            <option>Nacionalidad</option>
+            <option>Asilo</option>
+            <option>Regularizacion 2026</option>
+            <option>NIE Estudiante</option>
+            <option>Residencia No Lucrativa</option>
+            <option>Residencia por Estudios</option>
+            <option>Trabajo por Cuenta Ajena</option>
+            <option>Trabajo por Cuenta Propia</option>
+            <option>Trabajador Altamente Cualificado</option>
+            <option>Emprendedor Ley 14/2013</option>
+            <option>Inversores Ley 14/2013</option>
+            <option>Traslado Intraempresarial</option>
+            <option>Actividades de Investigacion</option>
+            <option>Voluntariado</option>
+            <option>Prácticas Profesionales</option>
+            <option>Reagrupacion Ascendientes</option>
+            <option>Visado de Larga Duración</option>
+            <option>Modificacion de Residencia a Trabajo</option>
+            <option>Residencia Familiar de Comunitario</option>
+            <option>Certificado de Registro UE</option>
+            <option>Autorizacion de Regreso</option>
+            <option>Prorroga de Estancia</option>
+            <option>Excepcion a Visado</option>
+            <option>Proteccion Temporal</option>
+            <option>Apatrida</option>
+            <option>Regimen Especial Trabajadores del Hogar</option>
+            <option>Trabajadores Temporada</option>
+            <option>Autorizacion Trabajo Fronterizo</option>
+            <option>Regreso Menores no Acompañados</option>
+            <option>Carta de Invitacion</option>
+            <option>Renovacion Residencia No Lucrativa</option>
+            <option>Renovacion Residencia Estudios</option>
+            <option>Trata de Seres Humanos</option>
+            <option>Documentacion Retornados</option>
+            <option>NIE por Intereses Economicos</option>
+            <option>Acceso a Nacionalidad Sefardi</option>
+            <option>Nacionalidad por Opcion</option>
+            <option>Nacionalidad por Carta de Naturaleza</option>
+            <option>Reconocimiento Proteccion Internacional</option>
+            <option>Autorizacion Excepcional Medica</option>
+            <option>Autorizacion Residencia Victimas Violencia</option>
+            <option>Convenio Doble Nacionalidad</option>
+            <option>Autorizacion Residencia Colaboracion</option>
+            <option>Larga Duracion UE</option>
+            <option>Renovacion Larga Duracion</option>
+            <option>Visado Regimen Comunitario</option>
+            <option>Reclamacion Silencio Administrativo</option>
+            <option>Recurso Alzada Extranjeria</option>
+            <option>Recurso Contencioso Administrativo</option>
+            <option>Expulsion y Retorno Voluntario</option>
+            <option>Documentos Viaje Extranjeros</option>
+            <option>Autorizacion Residencia Menores Tutelados</option>
+            <option>Permiso Conducir Canje</option>
           </select>
         </div>
         <div class="form-group"><label>Estado</label>
@@ -1337,6 +1394,7 @@ function showPage(id){
   if(id==='invitaciones'){populateCli('inv-cliente');loadInvitaciones();}
   if(id==='chat-despacho')loadChatDespacho();
   if(id==='control-horario'){iniciarReloj();loadEstadoFichajeActual().then(()=>{loadMisFichajesHoy();loadEstadoEquipo();loadResumenSemana();poblarFiltroUsuarios();const m=document.getElementById('filtro-mes-ch');if(m&&!m.value)m.value=new Date().toISOString().substring(0,7);loadHistorico();});}
+  if(id==='config')loadConfigTramites();
   if(id==='email-config'){loadEmailConfig();if(!allClients.length)loadClients();}
 }
 
@@ -1514,11 +1572,9 @@ async function guardarExp(){
       await db.from('expedientes').update(datos).eq('id',id);
       toast('Expediente actualizado','success');
     } else {
-      // Generar número automático
-      const year=new Date().getFullYear();
-      const{count}=await db.from('expedientes').select('*',{count:'exact',head:true});
-      const num='EXP-'+year+'-'+String((count||0)+1).padStart(4,'0');
-      await db.from('expedientes').insert({...datos,numero:num});
+      // El trigger auto_numero_expediente genera el número automáticamente
+      const{error:insErr}=await db.from('expedientes').insert(datos);
+      if(insErr) throw insErr;
       toast('Expediente creado','success');
     }
     closeModal('expediente');
@@ -2558,6 +2614,769 @@ async function checkDBConnection() {
 // Comprobar al cargar y cada 30 segundos
 setTimeout(checkDBConnection, 1500);
 setInterval(checkDBConnection, 30000);
+
+
+// ══════════════════════════════════════════════
+// CONFIGURACIÓN DE TRÁMITES — RD 1155/2024
+// ══════════════════════════════════════════════
+const TRAMITES_CONFIG = {
+  'NIE Lucrativo': {
+    normativa: 'Art. 206 RD 557/2011 · RD 1155/2024',
+    descripcion: 'Número de Identidad de Extranjero para actividades lucrativas (trabajo por cuenta ajena o propia).',
+    requisitos: [
+      'Modelo EX-15 (por duplicado, firmado)',
+      'Pasaporte en vigor (copia completa)',
+      'Justificación del motivo: contrato laboral, escritura, matrícula...',
+      'Tasa 790 código 012 (~10,70€)',
+      'Fotografía biométrica (fondo blanco, 32x26mm)'
+    ],
+    tasas: 'Tasa 790-012: ~10,70€',
+    plazo_resolucion: '1-3 días hábiles',
+    validez: 'No caduca (número permanente)',
+    motivos_denegacion: ['Documentación incompleta', 'Pasaporte caducado', 'Tasa no abonada'],
+    consejos: 'Presentar siempre por duplicado. Venezolanos: pasaporte caducado aceptado.'
+  },
+  'NIE No Lucrativo': {
+    normativa: 'Art. 206 RD 557/2011',
+    descripcion: 'NIE para actividades no lucrativas (residencia sin trabajo, pensionistas, rentistas).',
+    requisitos: [
+      'Modelo EX-15 (por duplicado)',
+      'Pasaporte en vigor',
+      'Acreditación medios económicos (extractos 3 meses)',
+      'Seguro médico privado con cobertura en España',
+      'Tasa 790-012'
+    ],
+    tasas: 'Tasa 790-012: ~10,70€',
+    plazo_resolucion: '1-3 días hábiles',
+    validez: 'No caduca',
+    motivos_denegacion: ['Medios económicos insuficientes', 'Seguro médico no válido'],
+    consejos: 'El seguro debe cubrir todo el territorio español sin copago.'
+  },
+  'Arraigo Social': {
+    normativa: 'Art. 124 RD 557/2011 · RD 1155/2024',
+    descripcion: 'Autorización de residencia por arraigo para extranjeros con 2 años de permanencia en España.',
+    requisitos: [
+      'Pasaporte (venezolanos: caducado aceptado)',
+      'Prueba de permanencia 2 años (empadronamiento + facturas, recibos, citas médicas)',
+      'Antecedentes penales del país de origen (apostillado + traducción jurada, vigencia 3 meses)',
+      'Informe de Servicios Sociales del Ayuntamiento',
+      'Precontrato laboral (si se dispone)',
+      'Tasa 790-052 epígrafe 2.3.1'
+    ],
+    tasas: 'Tasa 790-052 epígrafe 2.3.1',
+    plazo_resolucion: '3-6 meses',
+    validez: '2 años (renovable)',
+    motivos_denegacion: ['Menos de 2 años de permanencia', 'Antecedentes penales', 'Informe SS.SS. desfavorable'],
+    consejos: 'Sin contrato de trabajo es posible obtenerla con informe de SS.SS. desde RD 1155/2024.'
+  },
+  'Arraigo Sociolaboral': {
+    normativa: 'Art. 124 bis RD 557/2011 · RD 1155/2024',
+    descripcion: 'Arraigo con contrato de trabajo. Requiere 2 años de permanencia y precontrato mínimo 20h/semana.',
+    requisitos: [
+      'Pasaporte',
+      'Prueba de permanencia 2 años',
+      'Antecedentes penales (apostillado + traducción)',
+      'Precontrato laboral (mínimo 20h/semana, salario ≥ SMI)',
+      'Documentación del empleador (NIF + vida laboral empresa)',
+      'Tasa 790-052 epígrafe 2.3.1'
+    ],
+    tasas: 'Tasa 790-052 epígrafe 2.3.1',
+    plazo_resolucion: '3-6 meses',
+    validez: '2 años',
+    motivos_denegacion: ['Contrato inferior a 20h/semana', 'Empleador con deudas SS', 'Menos de 2 años permanencia'],
+    consejos: 'El empleador debe estar al corriente de pagos con la Seguridad Social.'
+  },
+  'Arraigo Familiar': {
+    normativa: 'Art. 124 ter RD 557/2011 · RD 1155/2024',
+    descripcion: 'Arraigo para familiares de ciudadano español. Sin requisito de tiempo mínimo de permanencia.',
+    requisitos: [
+      'Pasaporte',
+      'Acreditación vínculo familiar (libro de familia / certificado matrimonio o nacimiento, apostillado)',
+      'DNI/Pasaporte del familiar español',
+      'Empadronamiento del familiar español',
+      'Antecedentes penales (apostillado + traducción)',
+      'Tasa 790-052 epígrafe 2.3.1'
+    ],
+    tasas: 'Tasa 790-052 epígrafe 2.3.1',
+    plazo_resolucion: '3-6 meses',
+    validez: '5 años',
+    motivos_denegacion: ['Documentación familiar no apostillada', 'Vínculo no acreditado'],
+    consejos: 'No requiere tiempo mínimo de estancia. Duración de 5 años desde RD 1155/2024.'
+  },
+  'Renovacion TIE': {
+    normativa: 'Art. 71 RD 557/2011',
+    descripcion: 'Renovación de la Tarjeta de Identidad de Extranjero antes de su caducidad.',
+    requisitos: [
+      'Pasaporte en vigor',
+      'TIE anterior (fotocopia)',
+      'Certificado de empadronamiento (máx. 3 meses)',
+      'Informe de vida laboral actualizado',
+      'Contrato de trabajo vigente',
+      'Últimas 3 nóminas o declaración de renta',
+      'Tasa 790-052',
+      'Fotografía biométrica'
+    ],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '1-3 meses',
+    validez: '2-5 años según tipo',
+    motivos_denegacion: ['Baja laboral prolongada', 'Cotizaciones insuficientes', 'Ausencias prolongadas de España'],
+    consejos: 'Iniciar el trámite 60 días antes de la caducidad. Se puede renovar hasta 90 días después.'
+  },
+  'Residencia Permanente': {
+    normativa: 'Art. 148 RD 557/2011',
+    descripcion: 'Autorización de residencia de larga duración para extranjeros con 5 años de residencia legal.',
+    requisitos: [
+      'Pasaporte',
+      'TIE vigente',
+      'Empadronamiento histórico (5 años en todos los municipios)',
+      'Acreditación medios económicos (nóminas/IRPF, mín. ~720€/mes)',
+      'Antecedentes penales España (vigencia 3 meses)',
+      'Antecedentes penales extranjeros (apostillados)',
+      'Fotografía biométrica'
+    ],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '3-6 meses',
+    validez: 'Permanente (renovación cada 5 años)',
+    motivos_denegacion: ['Menos de 5 años residencia legal', 'Ausencias superiores a 10 meses en 5 años', 'Ingresos insuficientes'],
+    consejos: 'Las ausencias no pueden superar 6 meses consecutivos ni 10 meses totales en 5 años.'
+  },
+  'Reagrupacion Familiar': {
+    normativa: 'Arts. 17-19 LO 4/2000 · Art. 52 RD 557/2011',
+    descripcion: 'Autorización para traer al cónyuge e hijos a España.',
+    requisitos: [
+      'Pasaporte del reagrupante',
+      'TIE/autorización del reagrupante vigente',
+      'Empadronamiento actualizado',
+      'Certificado vínculo familiar (apostillado + traducción)',
+      'Pasaportes de los familiares a reagrupar',
+      'Antecedentes penales familiares mayores de 18 años',
+      'Informe de habitabilidad de la vivienda'
+    ],
+    tasas: 'Tasa 790-052 por cada familiar',
+    plazo_resolucion: '3-6 meses',
+    validez: 'Igual que el reagrupante',
+    motivos_denegacion: ['Vivienda no apta', 'Medios económicos insuficientes', 'Reagrupante con menos de 1 año de residencia'],
+    consejos: 'El reagrupante debe llevar al menos 1 año con autorización de residencia renovable.'
+  },
+  'Nacionalidad': {
+    normativa: 'Art. 22 Código Civil',
+    descripcion: 'Adquisición de la nacionalidad española por residencia (10 años, 5 para refugiados, 2 para iberoamericanos).',
+    requisitos: [
+      'Pasaporte en vigor',
+      'TIE/autorización de residencia',
+      'Empadronamiento actualizado',
+      'Antecedentes penales España (vigencia 3 meses)',
+      'Antecedentes penales extranjeros (10 últimos años, apostillados)',
+      'Certificado de nacimiento apostillado + traducción jurada',
+      'Diploma CCSE (conocimientos constitucionales — Instituto Cervantes)',
+      'Diploma DELE A2 o superior (español — Instituto Cervantes)'
+    ],
+    tasas: 'Tasa: ~100€',
+    plazo_resolucion: '1-3 años',
+    validez: 'Permanente',
+    motivos_denegacion: ['Antecedentes penales', 'CCSE o DELE no superados', 'Ausencias excesivas de España'],
+    consejos: 'Reservar cita CCSE y DELE con antelación. Iberoamericanos: solo 2 años de residencia. Sefardíes y Gibraltar: vía especial.'
+  },
+  'Asilo': {
+    normativa: 'Ley 12/2009 de Asilo',
+    descripcion: 'Solicitud de protección internacional por persecución por motivos de raza, religión, nacionalidad, opinión política o pertenencia a grupo social.',
+    requisitos: [
+      'Relato de persecución detallado por escrito',
+      'Pasaporte u otro documento de identidad (si se dispone)',
+      'Documentos que acrediten la persecución (informes médicos, denuncias, fotos, informes ONG)',
+      'Documentación de menores a cargo'
+    ],
+    tasas: 'Gratuito',
+    plazo_resolucion: '6 meses (puede prolongarse)',
+    validez: '5 años (renovable)',
+    motivos_denegacion: ['Solicitud manifiestamente infundada', 'Llegada por país seguro tercero', 'Motivos no contemplados en la Convención de Ginebra'],
+    consejos: 'Solicitar en comisaría o frontera en el momento de entrada. Formalizar en plazo máximo de 1 mes desde entrada.'
+  },
+  'Regularizacion 2026': {
+    normativa: 'Disposición Adicional Octava — Proyecto de Ley 2025/2026',
+    descripcion: 'Regularización extraordinaria para personas en situación irregular presentes en España antes del 1 de enero de 2026.',
+    requisitos: [
+      'Prueba de presencia antes del 1/1/2026 (pasaporte sellado, billete, factura o documento con nombre y fecha)',
+      'Empadronamiento histórico o actual',
+      'Antecedentes penales (apostillado + traducción)',
+      'Pasaporte o documento de identidad (caducado aceptado para venezolanos)'
+    ],
+    tasas: 'Pendiente de publicación oficial',
+    plazo_resolucion: 'Pendiente de aprobación definitiva',
+    validez: '2-3 años (estimado)',
+    motivos_denegacion: ['No acreditar presencia anterior al 1/1/2026', 'Antecedentes penales graves'],
+    consejos: 'Recopilar TODOS los documentos con fecha anterior al 31/12/2025 que acrediten presencia en España.'
+  }
+  'NIE Estudiante': {
+    normativa: 'Art. 34 LO 4/2000 · RD 557/2011',
+    descripcion: 'NIE para estudiantes extranjeros matriculados en centros educativos españoles.',
+    requisitos: ['Modelo EX-15 (por duplicado)','Pasaporte en vigor','Carta de admisión o matrícula del centro educativo','Seguro médico privado','Acreditación medios económicos (familia o beca)','Tasa 790-012'],
+    tasas: 'Tasa 790-012: ~10,70€',
+    plazo_resolucion: '1-3 días hábiles',
+    validez: 'No caduca',
+    motivos_denegacion: ['Sin matrícula acreditada','Sin seguro médico'],
+    consejos: 'Válido para estudios universitarios, FP, idiomas y cualquier formación reglada.'
+  },
+  'Residencia No Lucrativa': {
+    normativa: 'Art. 47 RD 557/2011',
+    descripcion: 'Autorización de residencia temporal sin actividad laboral para personas con medios económicos suficientes.',
+    requisitos: ['Modelo EX-01','Pasaporte en vigor','Acreditación medios económicos (mín. 400% IPREM/mes)','Seguro médico privado sin copago','Antecedentes penales (apostillados)','Tasa 790-052'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '1-3 meses',
+    validez: '1 año (renovable por 2 años)',
+    motivos_denegacion: ['Medios económicos insuficientes','Seguro médico no válido','Antecedentes penales'],
+    consejos: 'Muy utilizada por jubilados y rentistas de fuera de la UE. El seguro debe cubrir todo España.'
+  },
+  'Residencia por Estudios': {
+    normativa: 'Art. 34 LO 4/2000 · Arts. 92-105 RD 557/2011',
+    descripcion: 'Autorización de residencia temporal para estudiar en España más de 90 días.',
+    requisitos: ['Modelo EX-01','Pasaporte en vigor','Carta de admisión o matrícula','Seguro médico privado','Acreditación medios económicos','Antecedentes penales','Tasa 790-052'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '1-3 meses',
+    validez: 'Duración del curso (máx. 1 año, renovable)',
+    motivos_denegacion: ['Sin matrícula acreditada','Medios económicos insuficientes'],
+    consejos: 'No permite trabajar más de 30h/semana. Renovable mientras dure la formación.'
+  },
+  'Trabajo por Cuenta Ajena': {
+    normativa: 'Art. 36 LO 4/2000 · Arts. 63-68 RD 557/2011',
+    descripcion: 'Autorización inicial de residencia y trabajo por cuenta ajena (trabajador contratado por empresa).',
+    requisitos: ['Modelo EX-03 (empleador)','Pasaporte del trabajador','Contrato de trabajo firmado','Alta empresa en SS','Titulación homologada si se requiere','Informe SEPE situación nacional de empleo','Tasa 790-052'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '2-4 meses',
+    validez: '1 año',
+    motivos_denegacion: ['Situación nacional de empleo desfavorable','Empleador con sanciones','Ocupación no incluida en catálogo'],
+    consejos: 'El empleador debe demostrar que no hay trabajadores nacionales disponibles para el puesto.'
+  },
+  'Trabajo por Cuenta Propia': {
+    normativa: 'Art. 36 LO 4/2000 · Arts. 103-109 RD 557/2011',
+    descripcion: 'Autorización de residencia y trabajo como autónomo en España.',
+    requisitos: ['Modelo EX-07','Pasaporte','Plan de negocio detallado','Acreditación inversión o medios económicos','Alta IAE prevista','Titulación profesional si aplica','Licencia municipal si aplica','Tasa 790-052'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '2-4 meses',
+    validez: '1 año',
+    motivos_denegacion: ['Plan de negocio no viable','Sin medios económicos suficientes','Actividad no permitida'],
+    consejos: 'El plan de negocio es clave. Debe ser detallado y acreditar viabilidad económica.'
+  },
+  'Trabajador Altamente Cualificado': {
+    normativa: 'Ley 14/2013 de Emprendedores · Directiva UE 2009/50',
+    descripcion: 'Tarjeta Azul UE para profesionales altamente cualificados con contrato de trabajo.',
+    requisitos: ['Pasaporte','Contrato o promesa de contrato (salario mín. 1,5x salario medio)','Titulación universitaria o experiencia 5 años acreditada','Antecedentes penales','Tasa'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '20 días hábiles (resolución urgente)',
+    validez: '2 años',
+    motivos_denegacion: ['Salario inferior al mínimo exigido','Titulación no acreditada'],
+    consejos: 'Procesamiento preferente. Permite reagrupar familia desde el primer año.'
+  },
+  'Emprendedor Ley 14/2013': {
+    normativa: 'Ley 14/2013 de Apoyo a Emprendedores',
+    descripcion: 'Visado y autorización para emprendedores con proyectos de interés general para España.',
+    requisitos: ['Pasaporte','Plan de negocio con informe favorable ENISA o entidad acreditada','Acreditación medios económicos','Antecedentes penales','Seguro médico'],
+    tasas: 'Tasa',
+    plazo_resolucion: '20 días hábiles',
+    validez: '2 años (renovable por 3)',
+    motivos_denegacion: ['Proyecto sin interés económico','Informe negativo de la entidad evaluadora'],
+    consejos: 'El proyecto debe demostrar creación de empleo o innovación tecnológica relevante.'
+  },
+  'Inversores Ley 14/2013': {
+    normativa: 'Art. 63 Ley 14/2013 — Visado de Oro',
+    descripcion: 'Visado/autorización de residencia para inversores extranjeros (Golden Visa).',
+    requisitos: ['Pasaporte','Acreditación inversión: inmueble ≥500.000€, o deuda pública ≥2M€, o capital ≥1M€','Certificado inversión','Antecedentes penales','Seguro médico','Medios económicos suficientes'],
+    tasas: 'Tasa',
+    plazo_resolucion: '20 días hábiles',
+    validez: '2 años (renovable por 5)',
+    motivos_denegacion: ['Inversión insuficiente o no acreditada','Antecedentes penales'],
+    consejos: 'No requiere residencia efectiva en España. Incluye a cónyuge e hijos.'
+  },
+  'Traslado Intraempresarial': {
+    normativa: 'Ley 14/2013 · Directiva UE 2014/66',
+    descripcion: 'Autorización para directivos, especialistas o trabajadores en formación trasladados a filial española.',
+    requisitos: ['Pasaporte','Carta de traslado de la empresa','Contrato original en país de origen','Titulación o experiencia acreditada','Relación entre empresas (grupo empresarial)','Tasa'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '20 días hábiles',
+    validez: '3 años (directivos/especialistas), 1 año (en formación)',
+    motivos_denegacion: ['No acreditar grupo empresarial','Perfil no cumple requisitos de directivo/especialista'],
+    consejos: 'Muy útil para multinacionales. Permite movilidad en toda la UE.'
+  },
+  'Actividades de Investigacion': {
+    normativa: 'Arts. 106-107 RD 557/2011 · Directiva UE 2016/801',
+    descripcion: 'Autorización de residencia para investigadores en centros acreditados.',
+    requisitos: ['Pasaporte','Convenio de acogida con entidad de investigación acreditada','Titulación universitaria (mín. grado)','Antecedentes penales','Seguro médico'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '1-2 meses',
+    validez: 'Duración del proyecto (máx. 2 años)',
+    motivos_denegacion: ['Centro de investigación no acreditado','Titulación insuficiente'],
+    consejos: 'La entidad de acogida debe estar en el registro de entidades de investigación del Ministerio.'
+  },
+  'Voluntariado': {
+    normativa: 'Art. 105 RD 557/2011',
+    descripcion: 'Autorización de estancia para voluntarios en programas de organizaciones reconocidas.',
+    requisitos: ['Pasaporte','Carta de la organización','Programa de voluntariado detallado','Seguro médico','Medios económicos','Antecedentes penales'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '1-2 meses',
+    validez: 'Duración del programa',
+    motivos_denegacion: ['Organización no reconocida','Programa no acreditado'],
+    consejos: 'La organización debe estar inscrita en el Registro de Entidades de Voluntariado.'
+  },
+  'Prácticas Profesionales': {
+    normativa: 'Arts. 97-102 RD 557/2011',
+    descripcion: 'Autorización de residencia para realizar prácticas profesionales no laborales.',
+    requisitos: ['Pasaporte','Convenio de prácticas','Titulación o estudios en curso','Seguro médico','Medios económicos','Antecedentes penales'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '1-2 meses',
+    validez: '1 año (máx.)',
+    motivos_denegacion: ['Sin convenio formalizado','Empresa no habilitada'],
+    consejos: 'Las prácticas no deben ser actividad laboral retribuida. Diferenciar de contrato en prácticas.'
+  },
+  'Reagrupacion Ascendientes': {
+    normativa: 'Art. 17 LO 4/2000 · Art. 53 RD 557/2011',
+    descripcion: 'Reagrupación de padres/suegros del residente en España.',
+    requisitos: ['Pasaporte del reagrupante','TIE del reagrupante (renovación larga duración o 5 años)','Certificado vínculo (partida nacimiento apostillada)','Acreditación dependencia económica o razón humanitaria','Informe habitabilidad vivienda','Medios económicos reforzados'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '3-6 meses',
+    validez: 'Igual que reagrupante',
+    motivos_denegacion: ['Reagrupante sin residencia larga duración','Sin dependencia acreditada','Medios insuficientes'],
+    consejos: 'Solo posible con residencia de larga duración o 5 años de residencia. Más restrictiva que reagrupación de cónyuge/hijos.'
+  },
+  'Visado de Larga Duración': {
+    normativa: 'Art. 25 bis LO 4/2000',
+    descripcion: 'Visado nacional (tipo D) para estancias superiores a 90 días otorgado por consulado español.',
+    requisitos: ['Pasaporte con vigencia mínima 1 año','Formulario de solicitud de visado','Fotografía biométrica','Justificación del motivo (trabajo, estudios, familiar...)','Documentación específica según tipo','Tasa consular'],
+    tasas: 'Tasa consular (~80€ aprox)',
+    plazo_resolucion: '1-3 meses en consulado',
+    validez: 'Hasta 1 año o duración del permiso',
+    motivos_denegacion: ['Documentación incompleta','Antecedentes migratorios negativos','Motivo no justificado'],
+    consejos: 'Se solicita en el consulado español del país de residencia. Imprescindible para entrada regular.'
+  },
+  'Modificacion de Residencia a Trabajo': {
+    normativa: 'Art. 88 RD 557/2011',
+    descripcion: 'Modificación de autorización de residencia (no lucrativa, estudios) a residencia y trabajo.',
+    requisitos: ['Autorización de residencia vigente','Oferta o contrato de trabajo','Alta empresa SS','Informe SEPE (si aplica)','Pasaporte','Tasa 790-052'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '1-3 meses',
+    validez: '1 año',
+    motivos_denegacion: ['Autorización de origen caducada','Situación nacional de empleo desfavorable'],
+    consejos: 'Permite cambiar de residencia a trabajo sin salir de España. Muy útil para estudiantes con oferta laboral.'
+  },
+  'Residencia Familiar de Comunitario': {
+    normativa: 'RD 240/2007 · Directiva 2004/38/CE',
+    descripcion: 'Tarjeta de residencia para familiar no comunitario de ciudadano de la UE.',
+    requisitos: ['Pasaporte','Certificado de registro del familiar comunitario (NIE UE)','Certificado vínculo familiar','Libro de familia o certificado matrimonio (apostillado)','Fotografía biométrica'],
+    tasas: 'Tasa 790-012',
+    plazo_resolucion: '3 meses',
+    validez: '5 años',
+    motivos_denegacion: ['Matrimonio de conveniencia','Sin convivencia acreditada','Familiar comunitario no registrado'],
+    consejos: 'Régimen más favorable que el general. No requiere demostrar medios económicos propios si el familiar UE los tiene.'
+  },
+  'Certificado de Registro UE': {
+    normativa: 'RD 240/2007 · Directiva 2004/38/CE',
+    descripcion: 'Registro obligatorio para ciudadanos de la UE que residen más de 3 meses en España.',
+    requisitos: ['Pasaporte o DNI del país UE','Modelo EX-18','Acreditación de la condición (trabajador, estudiante, rentista, familiar...)','Fotografía biométrica','Tasa 012'],
+    tasas: 'Tasa 790-012: ~10,70€',
+    plazo_resolucion: '1-3 días',
+    validez: 'Indefinido (renovar si cambia situación)',
+    motivos_denegacion: ['No cumplir condición de comunitario activo','Sin medios si es no lucrativo'],
+    consejos: 'Obligatorio para ciudadanos UE/EEE residentes. Genera el NIE de ciudadanos europeos.'
+  },
+  'Autorizacion de Regreso': {
+    normativa: 'Art. 78 RD 557/2011',
+    descripcion: 'Documento para que el extranjero pueda regresar a España mientras su TIE está en tramitación.',
+    requisitos: ['Resguardo de solicitud de TIE o renovación','Pasaporte','Fotografía biométrica','Tasa'],
+    tasas: 'Tasa mínima',
+    plazo_resolucion: 'Inmediata (mismo día)',
+    validez: '90 días',
+    motivos_denegacion: ['Sin solicitud de TIE en trámite'],
+    consejos: 'Imprescindible para viajar al extranjero mientras se espera la TIE. Solicitarlo antes de viajar.'
+  },
+  'Prorroga de Estancia': {
+    normativa: 'Art. 30 bis LO 4/2000',
+    descripcion: 'Prórroga de la estancia de corta duración (turistas, visados de 90 días) por causas excepcionales.',
+    requisitos: ['Pasaporte','Modelo EX-00','Justificación de la causa (enfermedad, fuerza mayor, caso fortuito)','Documentación acreditativa'],
+    tasas: 'Tasa 790-012',
+    plazo_resolucion: '15-30 días',
+    validez: 'Máx. 90 días adicionales',
+    motivos_denegacion: ['Sin causa justificada','Antecedentes migratorios negativos'],
+    consejos: 'Solo para situaciones excepcionales. No otorga derecho a trabajar.'
+  },
+  'Excepcion a Visado': {
+    normativa: 'Art. 31.3 LO 4/2000 · Art. 126 RD 557/2011',
+    descripcion: 'Autorización de residencia en circunstancias excepcionales sin necesidad de visado consular.',
+    requisitos: ['Pasaporte','Documentación que acredite la circunstancia excepcional','Informe favorable de la Delegación del Gobierno','Tasa'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '3-6 meses',
+    validez: '1 año',
+    motivos_denegacion: ['Circunstancia no considerada excepcional'],
+    consejos: 'Supuesto muy restringido. Requiere informe favorable previo de la Delegación del Gobierno.'
+  },
+  'Proteccion Temporal': {
+    normativa: 'Directiva UE 2001/55 · RD 1325/2003',
+    descripcion: 'Protección inmediata para personas desplazadas masivamente (activada para ucranianos desde marzo 2022).',
+    requisitos: ['Pasaporte o documento de identidad del país afectado','Formulario de solicitud','Fotografía biométrica'],
+    tasas: 'Gratuito',
+    plazo_resolucion: 'Inmediata (misma semana)',
+    validez: '1 año (prorrogable hasta 3)',
+    motivos_denegacion: ['No ser nacional del país en conflicto','Amenaza para seguridad pública'],
+    consejos: 'Actualmente activa para ciudadanos ucranianos. Incluye derecho a trabajar y acceso a servicios sociales.'
+  },
+  'Apatrida': {
+    normativa: 'Convención de Nueva York 1954 · RD 865/2001',
+    descripcion: 'Reconocimiento del estatuto de apátrida para personas sin nacionalidad reconocida.',
+    requisitos: ['Documentación de identidad disponible','Relato de la situación de apatridia','Pruebas de no reconocimiento de ninguna nacionalidad'],
+    tasas: 'Gratuito',
+    plazo_resolucion: '12 meses',
+    validez: 'Indefinido',
+    motivos_denegacion: ['No acreditar la apatridia','Tener nacionalidad reconocida por algún Estado'],
+    consejos: 'Otorga documento de viaje (equivalente a pasaporte) y derechos similares al residente legal.'
+  },
+  'Regimen Especial Trabajadores del Hogar': {
+    normativa: 'RD 1620/2011 · Art. 36 LO 4/2000',
+    descripcion: 'Autorización de residencia y trabajo para empleados del hogar (interno o externo).',
+    requisitos: ['Modelo EX-03 del empleador','Pasaporte','Contrato laboral especial del hogar','Alta en RETA del empleador','Tasa 790-052'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '2-4 meses',
+    validez: '1 año',
+    motivos_denegacion: ['Empleador sin alta en SS','Contrato no ajustado a RD 1620/2011'],
+    consejos: 'El empleador debe darse de alta en el Sistema Especial de Empleados de Hogar de la SS antes de la solicitud.'
+  },
+  'Trabajadores Temporada': {
+    normativa: 'Art. 42 LO 4/2000 · Contingente anual',
+    descripcion: 'Autorización de trabajo de temporada para sectores agrícola, hostelería y otros.',
+    requisitos: ['Oferta de empleo del empleador en España','Pasaporte','Inscripción en el contingente anual','Compromiso de retorno al país de origen','Tasa'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '2-3 meses',
+    validez: 'Duración de la temporada (máx. 9 meses)',
+    motivos_denegacion: ['Sin oferta en contingente','Incumplimiento previo de retorno'],
+    consejos: 'Gestionado a través de contratos en origen. Acuerdos específicos con Marruecos, Colombia, Honduras...'
+  },
+  'Autorizacion Trabajo Fronterizo': {
+    normativa: 'Art. 36 ter LO 4/2000',
+    descripcion: 'Autorización para trabajadores que residen en país vecino y trabajan en España.',
+    requisitos: ['Pasaporte','Permiso de residencia en país fronterizo','Contrato de trabajo en España','Acreditación de residencia en zona fronteriza'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '2-3 meses',
+    validez: '1 año',
+    motivos_denegacion: ['No residir en zona fronteriza definida'],
+    consejos: 'Aplicable principalmente en Ceuta, Melilla y zonas limítrofes con Portugal.'
+  },
+  'Regreso Menores no Acompañados': {
+    normativa: 'Art. 35 LO 4/2000',
+    descripcion: 'Gestión de la situación de menores extranjeros no acompañados (MENA). No expulsión, tutela y residencia.',
+    requisitos: ['Documentación del menor si existe','Informe del servicio de protección de menores','Informe del tutor/guardador'],
+    tasas: 'Gratuito',
+    plazo_resolucion: 'Resolución urgente',
+    validez: 'Hasta mayoría de edad + 2 años posible',
+    motivos_denegacion: [],
+    consejos: 'Los menores no pueden ser expulsados. Tienen derecho a autorización de residencia por tutela. Al cumplir 18 pueden solicitar autorización de trabajo por arraigo.'
+  },
+  'Carta de Invitacion': {
+    normativa: 'Art. 94 RD 557/2011',
+    descripcion: 'Documento expedido por ciudadano español o residente para que familiar/conocido pueda solicitar visado de turista.',
+    requisitos: ['Modelo oficial (en comisaría)','DNI o NIE del invitante','Acreditación domicilio (empadronamiento)','Medios económicos del invitante','Datos del invitado (pasaporte)'],
+    tasas: 'Gratuito',
+    plazo_resolucion: 'Misma semana',
+    validez: '90 días desde expedición',
+    motivos_denegacion: ['Invitante sin residencia legal acreditada','Sospecha de inmigración irregular'],
+    consejos: 'No garantiza la concesión del visado, solo acredita la invitación. El cónsul decide.'
+  },
+  'Renovacion Residencia No Lucrativa': {
+    normativa: 'Art. 47.3 RD 557/2011',
+    descripcion: 'Renovación de la autorización de residencia temporal no lucrativa (rentistas, pensionistas).',
+    requisitos: ['TIE anterior','Pasaporte','Acreditación medios económicos actualizados','Seguro médico vigente','Empadronamiento','Tasa 790-052'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '1-3 meses',
+    validez: '2 años (primera renovación), 4 años (segunda)',
+    motivos_denegacion: ['Medios insuficientes','Seguro caducado','Ausencias excesivas'],
+    consejos: 'Iniciar 60 días antes de caducidad. Las ausencias no deben superar 6 meses en el período.'
+  },
+  'Renovacion Residencia Estudios': {
+    normativa: 'Arts. 92-97 RD 557/2011',
+    descripcion: 'Renovación de autorización de residencia para estudiantes.',
+    requisitos: ['TIE anterior','Pasaporte','Matrícula del curso actual','Certificado de aprovechamiento del curso anterior','Seguro médico','Medios económicos','Tasa 790-052'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '1-3 meses',
+    validez: 'Duración del curso',
+    motivos_denegacion: ['Abandono de estudios','Sin matrícula','Bajo rendimiento académico'],
+    consejos: 'Se debe acreditar progreso académico. Una asignatura aprobada en el año puede ser suficiente.'
+  },
+  'Trata de Seres Humanos': {
+    normativa: 'Art. 59 bis LO 4/2000 · RD 557/2011',
+    descripcion: 'Período de reflexión y autorización de residencia para víctimas de trata de seres humanos.',
+    requisitos: ['Denuncia o colaboración con autoridades (voluntario)','Informe de la autoridad policial','Documentación disponible'],
+    tasas: 'Gratuito',
+    plazo_resolucion: 'Urgente (90 días período reflexión)',
+    validez: '5 años',
+    motivos_denegacion: ['Solo si supone riesgo para seguridad nacional'],
+    consejos: 'La colaboración con la investigación no es obligatoria. El período de reflexión es un derecho aunque no se denuncie.'
+  },
+  'Documentacion Retornados': {
+    normativa: 'Ley 40/2006 del Estatuto de Ciudadanía Española en el Exterior',
+    descripcion: 'Gestión de documentación para españoles retornados y sus familiares.',
+    requisitos: ['Pasaporte español o DNI','Acreditación de residencia previa en el exterior','Documentación familiar si aplica'],
+    tasas: 'Gratuito',
+    plazo_resolucion: '15-30 días',
+    validez: 'Indefinido',
+    motivos_denegacion: ['Sin acreditación de residencia exterior'],
+    consejos: 'Los hijos nacidos fuera que no tienen nacionalidad española pueden tramitarla por filiación.'
+  },
+  'NIE por Intereses Economicos': {
+    normativa: 'Art. 206 RD 557/2011',
+    descripcion: 'NIE para extranjeros con intereses económicos en España (propietarios de inmuebles, inversores, compradores).',
+    requisitos: ['Pasaporte','Modelo EX-15','Justificación del interés económico (escritura, nota simple, contrato compraventa...)','Tasa 790-012'],
+    tasas: 'Tasa 790-012: ~10,70€',
+    plazo_resolucion: '1-3 días',
+    validez: 'No caduca',
+    motivos_denegacion: ['Sin acreditar interés económico en España'],
+    consejos: 'Imprescindible para comprar inmuebles, abrir cuentas bancarias, firmar contratos en España siendo extranjero no residente.'
+  },
+  'Acceso a Nacionalidad Sefardi': {
+    normativa: 'Ley 12/2015 de Sefardíes',
+    descripcion: 'Vía especial de acceso a la nacionalidad española para descendientes de judíos sefardíes expulsados en 1492.',
+    requisitos: ['Certificado de sefardía expedido por la FCJE o comunidades judías','Acreditación conocimiento castellano (DELE B2)','Acreditación conocimiento historia y cultura española (CCSE)','Pasaporte'],
+    tasas: '~100€',
+    plazo_resolucion: '6-18 meses',
+    validez: 'Permanente',
+    motivos_denegacion: ['Sin acreditar origen sefardí','DELE o CCSE no superados'],
+    consejos: 'No requiere residencia previa en España. Plazo de solicitud cerrado en 2019 para nuevas solicitudes bajo Ley 12/2015. Verificar estado actual.'
+  },
+  'Nacionalidad por Opcion': {
+    normativa: 'Art. 20 Código Civil',
+    descripcion: 'Adquisición de la nacionalidad española por opción para hijos de padre/madre español o nacidos en España.',
+    requisitos: ['Pasaporte o DNI','Certificado de nacimiento (apostillado)','Acreditar condición que otorga el derecho (filiación, nacimiento en España, adopción)'],
+    tasas: 'Registro Civil (gratuito o mínimo)',
+    plazo_resolucion: '6-18 meses',
+    validez: 'Permanente',
+    motivos_denegacion: ['No cumplir el supuesto habilitante','Documentación insuficiente'],
+    consejos: 'Para menores bajo patria potestad de español y para menores/mayores en supuestos del art. 20 CC. Sin requisito de residencia.'
+  },
+  'Nacionalidad por Carta de Naturaleza': {
+    normativa: 'Art. 21 Código Civil',
+    descripcion: 'Adquisición de la nacionalidad española por gracia discrecional del Gobierno en circunstancias excepcionales.',
+    requisitos: ['Solicitud motivada','Documentación acreditativa de las circunstancias excepcionales','Informe consular si aplica'],
+    tasas: 'Sin tasa oficial',
+    plazo_resolucion: 'Indeterminado (gracia real)',
+    validez: 'Permanente',
+    motivos_denegacion: ['No apreciarse circunstancias excepcionales'],
+    consejos: 'Muy excepcional. Se ha concedido a deportistas de élite, artistas y personas con servicios extraordinarios a España.'
+  },
+  'Reconocimiento Proteccion Internacional': {
+    normativa: 'Ley 12/2009 · Convenio Ginebra 1951',
+    descripcion: 'Solicitud de estatuto de refugiado o protección subsidiaria.',
+    requisitos: ['Solicitud en frontera, comisaría o dependencia de asilo','Relato detallado de persecución','Documentación disponible (pasaporte, informes médicos, denuncias, pruebas)'],
+    tasas: 'Gratuito',
+    plazo_resolucion: '6-18 meses',
+    validez: '5 años (refugiado), 1 año (subsidiaria, renovable)',
+    motivos_denegacion: ['Solicitud infundada','País de origen considerado seguro','Llegada por país tercero seguro'],
+    consejos: 'Diferente del asilo: el asilo es la resolución favorable de la solicitud de protección internacional.'
+  },
+  'Autorizacion Excepcional Medica': {
+    normativa: 'Art. 31 bis LO 4/2000 · Criterios humanitarios',
+    descripcion: 'Autorización de residencia por razones humanitarias, especialmente enfermedades graves.',
+    requisitos: ['Informe médico acreditando enfermedad grave','Acreditación de que el tratamiento no está disponible en país de origen','Pasaporte','Empadronamiento'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '3-6 meses',
+    validez: '1 año (renovable)',
+    motivos_denegacion: ['Enfermedad no considerada grave','Tratamiento disponible en origen'],
+    consejos: 'El informe médico debe ser de centro público español y muy detallado sobre la imposibilidad de tratamiento en origen.'
+  },
+  'Autorizacion Residencia Victimas Violencia': {
+    normativa: 'Art. 31 bis LO 4/2000 · LO 1/2004 Violencia de Género',
+    descripcion: 'Autorización de residencia y trabajo independiente para víctimas de violencia de género o doméstica.',
+    requisitos: ['Orden de protección o informe del Ministerio Fiscal','Denuncia o procedimiento penal en curso','Pasaporte'],
+    tasas: 'Gratuito',
+    plazo_resolucion: 'Urgente',
+    validez: '5 años',
+    motivos_denegacion: ['Sin orden de protección o procedimiento penal activo'],
+    consejos: 'Independiza la situación migratoria del agresor. No requiere que el agresor sea español. Incluye ayudas sociales.'
+  },
+  'Convenio Doble Nacionalidad': {
+    normativa: 'Convenios bilaterales con países iberoamericanos',
+    descripcion: 'Acceso a la nacionalidad española con 2 años de residencia para nacionales de países con convenio.',
+    requisitos: ['Pasaporte del país con convenio','2 años de residencia legal en España','Empadronamiento','Antecedentes penales','CCSE y DELE A2','Tasa'],
+    tasas: '~100€',
+    plazo_resolucion: '1-2 años',
+    validez: 'Permanente',
+    motivos_denegacion: ['Antecedentes penales','Exámenes no superados','Menos de 2 años residencia'],
+    consejos: 'Países con convenio: Argentina, Bolivia, Chile, Colombia, Costa Rica, Cuba, Ecuador, Guatemala, Honduras, México, Nicaragua, Panamá, Paraguay, Perú, República Dominicana, Uruguay, Venezuela, Filipinas, Guinea Ecuatorial, Portugal.'
+  },
+};
+  'Autorizacion Residencia Colaboracion': {
+    normativa: 'Art. 59 LO 4/2000',
+    descripcion: 'Autorización para extranjeros en situación irregular que colaboran con autoridades contra redes de inmigración ilegal.',
+    requisitos: ['Denuncia formal o colaboración acreditada','Informe policial favorable','Pasaporte o documentación disponible'],
+    tasas: 'Gratuito',
+    plazo_resolucion: '1-3 meses',
+    validez: '5 años',
+    motivos_denegacion: ['Colaboración no considerada relevante','Riesgo para seguridad pública'],
+    consejos: 'La colaboración debe ser con Fuerzas y Cuerpos de Seguridad del Estado, no con policía local.'
+  },
+  'Larga Duracion UE': {
+    normativa: 'Directiva 2003/109 CE · Art. 148 RD 557/2011',
+    descripcion: 'Permiso de residencia de larga duración con validez en toda la UE para extranjeros con 5 años en España.',
+    requisitos: ['5 años residencia legal en España','Pasaporte','TIE vigente','Empadronamiento histórico','Medios económicos estables','Integración acreditada (idioma)','Antecedentes penales limpios'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '3-6 meses',
+    validez: 'Permanente (renovar TIE cada 5 años)',
+    motivos_denegacion: ['Ausencias superiores a 12 meses en 5 años','Ingresos insuficientes','Antecedentes penales'],
+    consejos: 'A diferencia de la residencia permanente nacional, permite residir y trabajar en otros países de la UE con más facilidad.'
+  },
+  'Renovacion Larga Duracion': {
+    normativa: 'Art. 151 RD 557/2011',
+    descripcion: 'Renovación de la tarjeta de residencia de larga duración (cada 5 años).',
+    requisitos: ['TIE de larga duración anterior','Pasaporte','Empadronamiento','Medios económicos','Fotografía biométrica'],
+    tasas: 'Tasa 790-052',
+    plazo_resolucion: '1-3 meses',
+    validez: '5 años',
+    motivos_denegacion: ['Ausencias prolongadas fuera de España','Condena penal grave'],
+    consejos: 'La tarjeta debe renovarse aunque el permiso sea permanente. Iniciar 60 días antes de caducidad.'
+  },
+  'Visado Regimen Comunitario': {
+    normativa: 'RD 240/2007',
+    descripcion: 'Visado para entrar en España como familiar de ciudadano de la UE.',
+    requisitos: ['Pasaporte','Acreditación de vínculo con ciudadano UE','Documentación del familiar UE (pasaporte, certificado registro)'],
+    tasas: 'Gratuito (no se cobra tasa a familiares UE)',
+    plazo_resolucion: '15 días en consulado',
+    validez: 'Hasta que se obtenga la TIE familiar',
+    motivos_denegacion: ['Matrimonio de conveniencia sospechoso','Sin vínculo familiar acreditado'],
+    consejos: 'Trato preferente respecto al régimen general. El visado debe expedirse en máximo 15 días.'
+  },
+  'Reclamacion Silencio Administrativo': {
+    normativa: 'Art. 42 Ley 39/2015 LPAC',
+    descripcion: 'Reclamación por falta de resolución en plazo en expedientes de extranjería.',
+    requisitos: ['Resguardo de solicitud original','Acreditación del plazo transcurrido (>3 meses en general)','Escrito de reclamación'],
+    tasas: 'Gratuito',
+    plazo_resolucion: 'Variable',
+    validez: 'No aplica',
+    motivos_denegacion: ['Sin solicitud previa registrada'],
+    consejos: 'El silencio administrativo en extranjería es negativo. La reclamación reactiva el expediente. Diferente del recurso de alzada.'
+  },
+  'Recurso Alzada Extranjeria': {
+    normativa: 'Art. 121 Ley 39/2015 LPAC',
+    descripcion: 'Recurso administrativo contra resoluciones de extranjería ante el superior jerárquico.',
+    requisitos: ['Resolución denegatoria','Plazo: 1 mes desde notificación','Escrito de recurso motivado','Documentación adicional que soporte el recurso'],
+    tasas: 'Gratuito',
+    plazo_resolucion: '3 meses',
+    validez: 'No aplica',
+    motivos_denegacion: ['Fuera de plazo','Sin motivación suficiente'],
+    consejos: 'Plazo improrrogable de 1 mes. Suspende la expulsión si hay procedimiento sancionador. Tras alzada, cabe recurso contencioso-administrativo.'
+  },
+  'Recurso Contencioso Administrativo': {
+    normativa: 'Ley 29/1998 LJCA',
+    descripcion: 'Recurso ante el Tribunal Superior de Justicia contra resoluciones de extranjería.',
+    requisitos: ['Resolución denegatoria firme en vía administrativa','Plazo: 2 meses desde notificación','Abogado y procurador colegiados','Demanda judicial'],
+    tasas: 'Sin tasa para personas físicas',
+    plazo_resolucion: '1-3 años',
+    validez: 'No aplica',
+    motivos_denegacion: ['Fuera de plazo','Falta de legitimación'],
+    consejos: 'Requiere abogado especialista en extranjería. Puede solicitarse medida cautelar de suspensión de la expulsión.'
+  },
+  'Expulsion y Retorno Voluntario': {
+    normativa: 'Arts. 52-57 LO 4/2000',
+    descripcion: 'Tramitación del procedimiento de expulsión o gestión del retorno voluntario asistido.',
+    requisitos: ['Documentación de identidad','Resolución de expulsión si existe','Solicitud de retorno voluntario'],
+    tasas: 'Gratuito (retorno voluntario)',
+    plazo_resolucion: 'Variable',
+    validez: 'No aplica',
+    motivos_denegacion: ['No aplica'],
+    consejos: 'El retorno voluntario asistido puede incluir ayudas económicas (REPATRIATION program). Evita la prohibición de reentrada en muchos casos.'
+  },
+  'Documentos Viaje Extranjeros': {
+    normativa: 'Art. 34 RD 557/2011 · Convención Ginebra 1951',
+    descripcion: 'Expedición de documentos de viaje para refugiados, apátridas y extranjeros sin pasaporte.',
+    requisitos: ['Estatuto de refugiado o apátrida reconocido','Fotografía biométrica','Solicitud en Comisaría Nacional de Extranjería'],
+    tasas: 'Tasa mínima',
+    plazo_resolucion: '1-2 meses',
+    validez: '2 años',
+    motivos_denegacion: ['Sin estatuto reconocido','Orden de expulsión vigente'],
+    consejos: 'Equivale al pasaporte para refugiados. No garantiza entrada en todos los países, consultar visados necesarios.'
+  },
+  'Autorizacion Residencia Menores Tutelados': {
+    normativa: 'Art. 196 RD 557/2011',
+    descripcion: 'Autorización de residencia para menores extranjeros tutelados por la Administración española.',
+    requisitos: ['Resolución de tutela o guarda de la Comunidad Autónoma','Documentación del menor','Informe del centro de acogida'],
+    tasas: 'Gratuito',
+    plazo_resolucion: '1-3 meses',
+    validez: 'Hasta los 18 años (luego arraigo o trabajo)',
+    motivos_denegacion: ['Sin resolución de tutela formal'],
+    consejos: 'Los menores tutelados tienen derecho automático a autorización de residencia. Al cumplir 18, pueden acceder a arraigo o autorización de trabajo.'
+  },
+  'Permiso Conducir Canje': {
+    normativa: 'RD 818/2009 · Convenios bilaterales',
+    descripcion: 'Canje del permiso de conducir extranjero por el español (gestión paralela a la residencia).',
+    requisitos: ['Permiso de conducir original del país de origen','Pasaporte o NIE','Informe médico psicofísico','Tasa DGT','País con convenio de canje o revalidación'],
+    tasas: 'Tasa DGT + médico',
+    plazo_resolucion: '1-6 meses según país',
+    validez: 'Igual que permiso español',
+    motivos_denegacion: ['País sin convenio de canje','Permiso no válido en origen'],
+    consejos: 'Países con canje directo: países UE, Suiza, Japón, Corea, entre otros. Resto: pueden necesitar pruebas teórica y/o práctica.'
+  },
+];
+};
+
+function loadConfigTramites() {
+  const lista = document.getElementById('config-tramite-list');
+  if (!lista) return;
+  lista.innerHTML = Object.keys(TRAMITES_CONFIG).map(t => `
+    <div onclick="mostrarConfigTramite('${t}')" style="padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:4px;font-size:13px;font-weight:500;color:var(--text);transition:all 0.15s;border:1px solid transparent"
+      onmouseover="this.style.background='var(--accent-light)';this.style.borderColor='var(--accent)'"
+      onmouseout="this.style.background='';this.style.borderColor='transparent'">
+      ${t}
+    </div>`).join('');
+  // Mostrar el primero por defecto
+  mostrarConfigTramite(Object.keys(TRAMITES_CONFIG)[0]);
+}
+
+function mostrarConfigTramite(nombre) {
+  const t = TRAMITES_CONFIG[nombre];
+  if (!t) return;
+  const el = document.getElementById('config-detail');
+  if (!el) return;
+
+  // Resaltar el seleccionado
+  document.querySelectorAll('#config-tramite-list div').forEach(d => {
+    d.style.background = d.textContent.trim() === nombre ? 'var(--accent-light)' : '';
+    d.style.borderColor = d.textContent.trim() === nombre ? 'var(--accent)' : 'transparent';
+  });
+
+  el.innerHTML = `
+    <div style="margin-bottom:16px">
+      <div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--text);margin-bottom:4px">${nombre}</div>
+      <div style="font-size:11px;color:var(--text3);font-weight:500">${t.normativa}</div>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px;padding:10px 12px;background:var(--accent-light);border-radius:8px;border-left:3px solid var(--accent)">${t.descripcion}</div>
+
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">📋 Documentación requerida</div>
+      ${t.requisitos.map(r => `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12.5px">
+        <span style="color:var(--accent);flex-shrink:0;margin-top:1px">▸</span>
+        <span style="color:var(--text)">${r}</span>
+      </div>`).join('')}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="padding:10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">💶 Tasas</div>
+        <div style="font-size:12.5px;color:var(--text);font-weight:500">${t.tasas}</div>
+      </div>
+      <div style="padding:10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">⏱ Plazo resolución</div>
+        <div style="font-size:12.5px;color:var(--text);font-weight:500">${t.plazo_resolucion}</div>
+      </div>
+      <div style="padding:10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">✅ Validez</div>
+        <div style="font-size:12.5px;color:var(--text);font-weight:500">${t.validez}</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">❌ Motivos habituales de denegación</div>
+      ${t.motivos_denegacion.map(m => `<div style="display:flex;align-items:center;gap:7px;padding:5px 0;font-size:12.5px">
+        <span style="color:var(--red);flex-shrink:0">✗</span><span style="color:var(--text)">${m}</span>
+      </div>`).join('')}
+    </div>
+
+    <div style="padding:12px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;font-size:12.5px;color:#92400e">
+      <strong>💡 Consejo:</strong> ${t.consejos}
+    </div>`;
+}
 
 </script>
 </body>
