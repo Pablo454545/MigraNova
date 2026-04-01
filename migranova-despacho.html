@@ -415,6 +415,55 @@ tr:hover td { background: rgba(37,99,235,0.03); }
 .email-meta{font-size:11px;color:var(--text3);margin-top:2px;}
 .email-estado-ok{font-size:10px;padding:2px 7px;border-radius:8px;background:#dcfce7;color:#166534;font-weight:600;}
 .email-estado-err{font-size:10px;padding:2px 7px;border-radius:8px;background:#fee2e2;color:#991b1b;font-weight:600;}
+
+/* ══ CALENDARIO ══ */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cal-nav{display:flex;align-items:center;gap:10px;}
+.cal-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--text);min-width:200px;text-align:center;}
+.cal-view-tabs{display:flex;gap:3px;background:var(--bg3);border-radius:8px;padding:3px;border:1px solid var(--border);}
+.cal-view-btn{padding:6px 14px;border-radius:6px;border:none;background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:500;color:var(--text2);transition:all 0.15s;}
+.cal-view-btn.active{background:#fff;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+
+/* VISTA MES */
+.cal-grid-mes{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--border);border-top:1px solid var(--border);}
+.cal-dia-header{padding:8px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;background:var(--bg3);border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.cal-dia{min-height:100px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:6px 5px;cursor:pointer;transition:background 0.1s;position:relative;}
+.cal-dia:hover{background:var(--accent-light);}
+.cal-dia.otro-mes{background:var(--bg3);opacity:0.5;}
+.cal-dia.hoy .cal-dia-num{background:var(--accent);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;}
+.cal-dia.seleccionado{background:var(--accent-light);border:2px solid var(--accent);}
+.cal-dia-num{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;}
+.cal-evento{font-size:10.5px;padding:2px 5px;border-radius:4px;margin-bottom:2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
+.cal-evento.oficina{background:#dbeafe;color:#1e40af;}
+.cal-evento.extranjeria{background:#dcfce7;color:#166534;}
+.cal-evento.videollamada{background:#f3e8ff;color:#6b21a8;}
+.cal-evento.otro{background:#fef3c7;color:#92400e;}
+.cal-mas{font-size:10px;color:var(--text3);margin-top:1px;}
+
+/* VISTA SEMANA */
+.cal-semana{display:grid;grid-template-columns:60px repeat(7,1fr);border-left:1px solid var(--border);border-top:1px solid var(--border);}
+.cal-hora-col{border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.cal-semana-header{padding:8px 4px;text-align:center;background:var(--bg3);border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.cal-semana-dia-nombre{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;}
+.cal-semana-dia-num{font-size:18px;font-weight:700;color:var(--text);line-height:1.2;}
+.cal-semana-dia-num.hoy{background:var(--accent);color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin:0 auto;}
+.cal-slot{min-height:48px;border-right:1px solid var(--border);border-bottom:1px solid rgba(226,232,240,0.5);position:relative;cursor:pointer;}
+.cal-slot:hover{background:var(--accent-light);}
+.cal-hora-label{font-size:10px;color:var(--text3);padding:4px 6px;text-align:right;border-bottom:1px solid rgba(226,232,240,0.5);height:48px;display:flex;align-items:flex-start;justify-content:flex-end;}
+.cal-evento-semana{position:absolute;top:2px;left:2px;right:2px;border-radius:5px;padding:3px 6px;font-size:11px;font-weight:500;cursor:pointer;overflow:hidden;z-index:1;}
+
+/* VISTA DÍA */
+.cal-dia-view{display:grid;grid-template-columns:60px 1fr;border-left:1px solid var(--border);border-top:1px solid var(--border);}
+.cal-dia-slot{min-height:56px;border-right:1px solid var(--border);border-bottom:1px solid rgba(226,232,240,0.5);position:relative;cursor:pointer;}
+.cal-dia-slot:hover{background:var(--accent-light);}
+.cal-evento-dia{position:absolute;top:3px;left:4px;right:4px;border-radius:6px;padding:4px 8px;font-size:12px;font-weight:500;cursor:pointer;}
+
+/* PANEL LATERAL CITA */
+.cita-detail-panel{position:fixed;top:0;right:-380px;width:360px;height:100vh;background:#fff;border-left:1px solid var(--border);box-shadow:-4px 0 20px rgba(0,0,0,0.1);z-index:90;transition:right 0.25s ease;overflow-y:auto;}
+.cita-detail-panel.open{right:0;}
+.cita-detail-header{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.cita-detail-body{padding:20px;}
+.cita-detail-tipo{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:12px;}
 </style>
 </head>
 <body>
@@ -552,10 +601,52 @@ tr:hover td { background: rgba(37,99,235,0.03); }
         <div class="card"><div id="lista-tareas"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
       </div>
 
-      <!-- CITAS -->
+      <!-- CITAS / CALENDARIO -->
       <div class="page" id="page-citas">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-primary btn-sm" onclick="openModal('cita')">＋ Nueva Cita</button></div>
-        <div class="card"><div id="lista-citas"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
+
+        <!-- CABECERA -->
+        <div class="cal-header">
+          <div class="cal-nav">
+            <button class="btn btn-ghost btn-sm" onclick="calNav(-1)">← Anterior</button>
+            <div class="cal-title" id="cal-title">—</div>
+            <button class="btn btn-ghost btn-sm" onclick="calNav(1)">Siguiente →</button>
+            <button class="btn btn-ghost btn-sm" onclick="calHoy()">Hoy</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="cal-view-tabs">
+              <button class="cal-view-btn active" onclick="calSetVista('mes',this)">Mes</button>
+              <button class="cal-view-btn" onclick="calSetVista('semana',this)">Semana</button>
+              <button class="cal-view-btn" onclick="calSetVista('dia',this)">Día</button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openModal('cita')">＋ Nueva cita</button>
+          </div>
+        </div>
+
+        <!-- LEYENDA -->
+        <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#dbeafe;display:inline-block"></span>Oficina</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#dcfce7;display:inline-block"></span>Extranjería</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#f3e8ff;display:inline-block"></span>Videollamada</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:3px;background:#fef3c7;display:inline-block"></span>Otro</span>
+        </div>
+
+        <!-- CONTENEDOR CALENDARIO -->
+        <div id="cal-container" style="background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)">
+          <div id="cal-body"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+        </div>
+
+      </div>
+
+      <!-- PANEL LATERAL DETALLE CITA -->
+      <div class="cita-detail-panel" id="cita-detail-panel">
+        <div class="cita-detail-header">
+          <div style="font-size:15px;font-weight:600;color:var(--text)">Detalle de cita</div>
+          <div style="display:flex;gap:7px;align-items:center">
+            <button class="btn btn-ghost btn-sm" id="btn-editar-cita-panel" onclick="">✏️</button>
+            <button class="btn btn-ghost btn-sm" onclick="cerrarCitaPanel()">✕</button>
+          </div>
+        </div>
+        <div class="cita-detail-body" id="cita-detail-body"></div>
       </div>
 
       <!-- CONFIG TRÁMITES -->
@@ -1015,7 +1106,7 @@ let currentUser=null, currentProfile=null, allClients=[];
 
 const TITLES={
   dashboard:'Dashboard',clientes:'Clientes',expedientes:'Expedientes',
-  kanban:'Estado de Trámites',tareas:'Tareas',citas:'Citas',
+  kanban:'Estado de Trámites',tareas:'Tareas',citas:'Calendario',
   presupuestos:'Presupuestos',config:'Configuración de Trámites',
   invitaciones:'Portal Clientes','chat-despacho':'Chat con Clientes',
   'control-horario':'Control Horario','email-config':'Email'
@@ -2186,3 +2277,325 @@ init();
 </script>
 </body>
 </html>
+<script>
+// ══════════════════════════════════════════════
+// CALENDARIO COMPLETO
+// ══════════════════════════════════════════════
+let calVista = 'mes';
+let calFecha = new Date();
+let calCitas = [];
+
+const CAL_COLORES = {
+  oficina:     { bg:'#dbeafe', color:'#1e40af', border:'#93c5fd' },
+  extranjeria: { bg:'#dcfce7', color:'#166534', border:'#86efac' },
+  videollamada:{ bg:'#f3e8ff', color:'#6b21a8', border:'#d8b4fe' },
+  otro:        { bg:'#fef3c7', color:'#92400e', border:'#fcd34d' }
+};
+
+const DIAS_SEMANA = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const HORAS = Array.from({length:24},(_,i)=>i);
+
+async function loadCitas() {
+  const { data } = await db.from('citas')
+    .select('*,clientes(nombre,apellidos)')
+    .order('fecha_hora', { ascending: true });
+  calCitas = data || [];
+  const ahora = new Date();
+  document.getElementById('badge-cit').textContent =
+    calCitas.filter(c => new Date(c.fecha_hora) > ahora).length || 0;
+  renderCalendario();
+}
+
+function renderCalendario() {
+  const el = document.getElementById('cal-body');
+  if (!el) return;
+  if (calVista === 'mes') renderMes(el);
+  else if (calVista === 'semana') renderSemana(el);
+  else renderDia(el);
+}
+
+function calSetVista(vista, btn) {
+  calVista = vista;
+  document.querySelectorAll('.cal-view-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderCalendario();
+}
+
+function calNav(dir) {
+  if (calVista === 'mes') calFecha.setMonth(calFecha.getMonth() + dir);
+  else if (calVista === 'semana') calFecha.setDate(calFecha.getDate() + dir * 7);
+  else calFecha.setDate(calFecha.getDate() + dir);
+  renderCalendario();
+}
+
+function calHoy() {
+  calFecha = new Date();
+  renderCalendario();
+}
+
+// ── VISTA MES ──
+function renderMes(el) {
+  const año = calFecha.getFullYear();
+  const mes = calFecha.getMonth();
+  document.getElementById('cal-title').textContent = MESES[mes] + ' ' + año;
+
+  const primero = new Date(año, mes, 1);
+  const ultimo = new Date(año, mes + 1, 0);
+  // Lunes = inicio
+  let diaInicio = primero.getDay() - 1; if (diaInicio < 0) diaInicio = 6;
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+
+  let html = '<div class="cal-grid-mes">';
+  // Headers
+  DIAS_SEMANA.forEach(d => { html += `<div class="cal-dia-header">${d}</div>`; });
+
+  // Días del mes anterior
+  for (let i = 0; i < diaInicio; i++) {
+    const d = new Date(año, mes, -diaInicio + i + 1);
+    html += `<div class="cal-dia otro-mes"><div class="cal-dia-num">${d.getDate()}</div></div>`;
+  }
+
+  // Días del mes
+  for (let d = 1; d <= ultimo.getDate(); d++) {
+    const fecha = new Date(año, mes, d);
+    const fechaStr = fecha.toISOString().substring(0, 10);
+    const esHoy = fecha.getTime() === hoy.getTime();
+    const citasDia = calCitas.filter(c => c.fecha_hora?.startsWith(fechaStr));
+    const max = 3;
+
+    html += `<div class="cal-dia ${esHoy ? 'hoy' : ''}" onclick="calDiaClick('${fechaStr}')">
+      <div class="cal-dia-num">${d}</div>
+      ${citasDia.slice(0, max).map(c => {
+        const col = CAL_COLORES[c.tipo] || CAL_COLORES.otro;
+        const hora = new Date(c.fecha_hora).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+        return `<div class="cal-evento ${c.tipo||'otro'}" style="background:${col.bg};color:${col.color};border-left:3px solid ${col.border}"
+          onclick="event.stopPropagation();mostrarCitaPanel('${c.id}')" title="${c.clientes?.nombre||''} ${c.clientes?.apellidos||''}">
+          ${hora} ${c.clientes?.nombre||'—'}
+        </div>`;
+      }).join('')}
+      ${citasDia.length > max ? `<div class="cal-mas">+${citasDia.length - max} más</div>` : ''}
+    </div>`;
+  }
+
+  // Días del mes siguiente para completar filas
+  const totalCeldas = diaInicio + ultimo.getDate();
+  const restantes = totalCeldas % 7 === 0 ? 0 : 7 - (totalCeldas % 7);
+  for (let i = 1; i <= restantes; i++) {
+    html += `<div class="cal-dia otro-mes"><div class="cal-dia-num">${i}</div></div>`;
+  }
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ── VISTA SEMANA ──
+function renderSemana(el) {
+  // Obtener el lunes de la semana
+  const lunes = new Date(calFecha);
+  const dow = lunes.getDay(); // 0=dom,1=lun...
+  lunes.setDate(lunes.getDate() - (dow === 0 ? 6 : dow - 1));
+  lunes.setHours(0,0,0,0);
+
+  const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
+  document.getElementById('cal-title').textContent =
+    lunes.toLocaleDateString('es-ES',{day:'2-digit',month:'short'}) + ' — ' +
+    domingo.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const dias = Array.from({length:7},(_,i)=>{ const d=new Date(lunes);d.setDate(lunes.getDate()+i);return d; });
+
+  let html = `<div style="overflow:auto;max-height:70vh">
+  <div class="cal-semana" style="min-width:600px">
+    <div class="cal-hora-col" style="background:var(--bg3);border-right:1px solid var(--border);border-bottom:1px solid var(--border)"></div>`;
+
+  dias.forEach(d => {
+    const esHoy = d.getTime() === hoy.getTime();
+    const numStyle = esHoy ? 'class="cal-semana-dia-num hoy"' : 'class="cal-semana-dia-num"';
+    html += `<div class="cal-semana-header">
+      <div class="cal-semana-dia-nombre">${DIAS_SEMANA[d.getDay()===0?6:d.getDay()-1]}</div>
+      <div ${numStyle}>${d.getDate()}</div>
+    </div>`;
+  });
+
+  // Horas
+  HORAS.forEach(h => {
+    html += `<div class="cal-hora-label">${String(h).padStart(2,'0')}:00</div>`;
+    dias.forEach(d => {
+      const fechaStr = d.toISOString().substring(0,10);
+      const citasSlot = calCitas.filter(c => {
+        if (!c.fecha_hora?.startsWith(fechaStr)) return false;
+        const ch = new Date(c.fecha_hora).getHours();
+        return ch === h;
+      });
+      html += `<div class="cal-slot" onclick="calSlotClick('${fechaStr}','${h}')">`;
+      citasSlot.forEach(c => {
+        const col = CAL_COLORES[c.tipo] || CAL_COLORES.otro;
+        const mins = new Date(c.fecha_hora).getMinutes();
+        const top = Math.round(mins / 60 * 44);
+        const dur = c.duracion_minutos || 30;
+        const h2 = Math.max(20, Math.round(dur / 60 * 44));
+        html += `<div class="cal-evento-semana" style="background:${col.bg};color:${col.color};border-left:3px solid ${col.border};top:${top}px;height:${h2}px"
+          onclick="event.stopPropagation();mostrarCitaPanel('${c.id}')" title="${c.clientes?.nombre||''} ${c.clientes?.apellidos||''}">
+          ${c.clientes?.nombre||'—'}
+        </div>`;
+      });
+      html += '</div>';
+    });
+  });
+
+  html += '</div></div>';
+  el.innerHTML = html;
+}
+
+// ── VISTA DÍA ──
+function renderDia(el) {
+  const fechaStr = calFecha.toISOString().substring(0, 10);
+  document.getElementById('cal-title').textContent =
+    calFecha.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  const citasDia = calCitas.filter(c => c.fecha_hora?.startsWith(fechaStr));
+
+  let html = `<div style="overflow:auto;max-height:70vh">
+  <div class="cal-dia-view" style="min-width:400px">`;
+
+  HORAS.forEach(h => {
+    const citasHora = citasDia.filter(c => new Date(c.fecha_hora).getHours() === h);
+    html += `<div class="cal-hora-label">${String(h).padStart(2,'0')}:00</div>
+    <div class="cal-dia-slot" onclick="calSlotClick('${fechaStr}','${h}')">`;
+    citasHora.forEach(c => {
+      const col = CAL_COLORES[c.tipo] || CAL_COLORES.otro;
+      const mins = new Date(c.fecha_hora).getMinutes();
+      const top = Math.round(mins / 60 * 52);
+      const dur = c.duracion_minutos || 30;
+      const h2 = Math.max(28, Math.round(dur / 60 * 52));
+      html += `<div class="cal-evento-dia" style="background:${col.bg};color:${col.color};border-left:3px solid ${col.border};top:${top}px;min-height:${h2}px"
+        onclick="event.stopPropagation();mostrarCitaPanel('${c.id}')">
+        <div style="font-size:12px;font-weight:600">${new Date(c.fecha_hora).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})} — ${c.clientes?.nombre||'—'} ${c.clientes?.apellidos||''}</div>
+        <div style="font-size:11px;opacity:0.8">${c.tipo||''} ${c.duracion_minutos?'· '+c.duracion_minutos+'min':''}</div>
+        ${c.notas?`<div style="font-size:10.5px;opacity:0.7;margin-top:2px">${c.notas}</div>`:''}
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  html += '</div></div>';
+
+  // Sidebar con lista del día
+  if (citasDia.length) {
+    html += `<div style="padding:14px 16px;border-top:1px solid var(--border);background:var(--bg3)">
+      <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">${citasDia.length} cita${citasDia.length>1?'s':''} este día</div>
+      ${citasDia.map(c=>{
+        const col=CAL_COLORES[c.tipo]||CAL_COLORES.otro;
+        return`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="mostrarCitaPanel('${c.id}')">
+          <div style="width:8px;height:8px;border-radius:50%;background:${col.border};flex-shrink:0"></div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text)">${new Date(c.fecha_hora).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})} · ${c.clientes?.nombre||'—'} ${c.clientes?.apellidos||''}</div><div style="font-size:11px;color:var(--text3)">${c.tipo||''}</div></div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+// ── INTERACCIÓN ──
+function calDiaClick(fechaStr) {
+  // En vista mes, clic en día va a vista día
+  calFecha = new Date(fechaStr + 'T12:00:00');
+  calSetVista('dia', document.querySelectorAll('.cal-view-btn')[2]);
+  document.querySelectorAll('.cal-view-btn').forEach((b,i)=>b.classList.toggle('active',i===2));
+}
+
+function calSlotClick(fechaStr, hora) {
+  // Abrir modal de nueva cita con fecha y hora prerrellenas
+  openModal('cita');
+  const dt = `${fechaStr}T${String(hora).padStart(2,'0')}:00`;
+  setTimeout(() => {
+    const el = document.getElementById('cit-fecha');
+    if (el) el.value = dt;
+  }, 100);
+}
+
+async function mostrarCitaPanel(id) {
+  const cita = calCitas.find(c => c.id === id);
+  if (!cita) return;
+  const col = CAL_COLORES[cita.tipo] || CAL_COLORES.otro;
+  const panel = document.getElementById('cita-detail-panel');
+  const body = document.getElementById('cita-detail-body');
+  const btnEditar = document.getElementById('btn-editar-cita-panel');
+  if (btnEditar) btnEditar.setAttribute('onclick', `editarCita('${id}')`);
+
+  body.innerHTML = `
+    <div class="cita-detail-tipo" style="background:${col.bg};color:${col.color};border:1px solid ${col.border}">
+      ${{oficina:'🏢',extranjeria:'⚖️',videollamada:'💻',otro:'📋'}[cita.tipo]||'📋'} ${cita.tipo||'—'}
+    </div>
+    <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:12px">${cita.clientes?.nombre||'—'} ${cita.clientes?.apellidos||''}</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:var(--bg3);border-radius:8px">
+        <span style="font-size:18px">📅</span>
+        <div>
+          <div style="font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Fecha y hora</div>
+          <div style="font-size:14px;font-weight:500;color:var(--text)">${new Date(cita.fecha_hora).toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+          <div style="font-size:13px;color:var(--text2)">${new Date(cita.fecha_hora).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})} ${cita.duracion_minutos?'· '+cita.duracion_minutos+' min':''}</div>
+        </div>
+      </div>
+      ${cita.notas?`<div style="padding:10px;background:var(--bg3);border-radius:8px">
+        <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Notas</div>
+        <div style="font-size:13px;color:var(--text)">${cita.notas}</div>
+      </div>`:''}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:20px">
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="eliminarCita('${id}')">🗑 Eliminar</button>
+      <button class="btn btn-primary btn-sm" style="flex:1" onclick="editarCita('${id}');cerrarCitaPanel()">✏️ Editar</button>
+    </div>`;
+  panel.classList.add('open');
+}
+
+function cerrarCitaPanel() {
+  document.getElementById('cita-detail-panel').classList.remove('open');
+}
+
+async function eliminarCita(id) {
+  if (!confirm('¿Eliminar esta cita?')) return;
+  await db.from('citas').delete().eq('id', id);
+  cerrarCitaPanel();
+  loadCitas();
+  toast('Cita eliminada', 'success');
+}
+
+// Cerrar panel al hacer clic fuera
+document.addEventListener('click', e => {
+  const panel = document.getElementById('cita-detail-panel');
+  if (panel?.classList.contains('open') && !e.target.closest('#cita-detail-panel') && !e.target.closest('.cal-evento') && !e.target.closest('.cal-evento-semana') && !e.target.closest('.cal-evento-dia')) {
+    cerrarCitaPanel();
+  }
+});
+
+// Override loadCitas y guardarCita para refrescar el calendario
+const _loadCitasOrig = window.loadCitas;
+window.loadCitas = async function() {
+  const { data } = await db.from('citas').select('*,clientes(nombre,apellidos)').order('fecha_hora', { ascending: true });
+  calCitas = data || [];
+  const ahora = new Date();
+  document.getElementById('badge-cit').textContent = calCitas.filter(c => new Date(c.fecha_hora) > ahora).length || 0;
+  renderCalendario();
+};
+
+const _guardarCitaOrig = window.guardarCita;
+window.guardarCita = async function() {
+  const id = document.getElementById('cit-id').value;
+  const datos = {
+    cliente_id: document.getElementById('cit-cliente').value,
+    tipo: document.getElementById('cit-tipo').value,
+    fecha_hora: document.getElementById('cit-fecha').value,
+    duracion_minutos: parseInt(document.getElementById('cit-duracion').value) || 30,
+    notas: document.getElementById('cit-notas').value
+  };
+  if (!datos.cliente_id || !datos.fecha_hora) { toast('Cliente y fecha son obligatorios', 'warn'); return; }
+  if (id) await db.from('citas').update(datos).eq('id', id);
+  else await db.from('citas').insert(datos);
+  toast('Cita guardada', 'success');
+  closeModal('cita');
+  loadCitas();
+};
+</script>
