@@ -544,7 +544,10 @@ tr:hover td { background: rgba(37,99,235,0.03); }
           <div id="db-led" style="width:9px;height:9px;border-radius:50%;background:#94a3b8;transition:background 0.3s;flex-shrink:0"></div>
           <span id="db-label" style="font-size:11.5px;font-weight:500;color:var(--text2)">Conectando...</span>
         </div>
-        <div class="search-box"><span>🔍</span><input type="text" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)"></div>
+        <div style="position:relative">
+          <div class="search-box"><span>🔍</span><input type="text" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)" autocomplete="off"></div>
+          <div id="search-results" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:9px;box-shadow:var(--shadow);z-index:50;overflow:hidden"></div>
+        </div>
         <div class="notif-bell" onclick="toggleNotifPanel()" id="notif-bell">🔔<div class="notif-count" id="notif-count" style="display:none">0</div></div>
         <button class="btn btn-primary btn-sm" onclick="openModal('expediente')">＋ Expediente</button>
         <button class="btn btn-ghost btn-sm" onclick="openModal('cliente')">＋ Cliente</button>
@@ -863,6 +866,74 @@ Tiene documentación pendiente para el expediente {{numero}}.
                 <button class="btn btn-primary" onclick="enviarEmailRapido()">📤 Enviar email</button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- PRESUPUESTOS -->
+      <div class="page" id="page-presupuestos">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div class="fact-tabs" style="flex:1;max-width:460px;margin-bottom:0">
+            <button class="fact-tab active" onclick="showPresTab('clientes-pres',this)">👤 Clientes y Expedientes</button>
+            <button class="fact-tab" onclick="showPresTab('lista-pres',this)">📝 Presupuestos</button>
+            <button class="fact-tab" onclick="showPresTab('stats-pres',this)">📊 Estadísticas</button>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('presupuesto')">＋ Nuevo Presupuesto</button>
+        </div>
+        <div id="clientes-pres">
+          <div class="search-box" style="width:100%;margin-bottom:14px;max-width:340px">
+            <span>🔍</span>
+            <input type="text" placeholder="Buscar cliente..." oninput="filtrarClientesPres(this.value)">
+          </div>
+          <div id="clientes-pres-lista"><div class="loading"><div class="spinner"></div>Cargando clientes...</div></div>
+        </div>
+        <div id="lista-pres" style="display:none">
+          <div class="filters" id="filtros-pres">
+            <button class="filter-btn active" onclick="filtrarPres(null,this)">Todos</button>
+            <button class="filter-btn" onclick="filtrarPres('borrador',this)">Borrador</button>
+            <button class="filter-btn" onclick="filtrarPres('enviado',this)">Enviado</button>
+            <button class="filter-btn" onclick="filtrarPres('aceptado',this)">Aceptado</button>
+            <button class="filter-btn" onclick="filtrarPres('rechazado',this)">Rechazado</button>
+            <button class="filter-btn" onclick="filtrarPres('facturado',this)">Facturado</button>
+          </div>
+          <div id="tabla-presupuestos"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+        </div>
+        <div id="stats-pres" style="display:none">
+          <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+            <div class="kpi blue"><div class="kpi-label">Total presupuestado</div><div class="kpi-value" id="s-total">—</div></div>
+            <div class="kpi green"><div class="kpi-label">Aceptados</div><div class="kpi-value" id="s-aceptados">—</div></div>
+            <div class="kpi gold"><div class="kpi-label">Pendientes</div><div class="kpi-value" id="s-pendientes">—</div></div>
+            <div class="kpi purple"><div class="kpi-label">% Conversión</div><div class="kpi-value" id="s-conversion">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PORTAL CLIENTES / INVITACIONES -->
+      <div class="page" id="page-invitaciones">
+        <div class="alert info" style="margin-bottom:16px">🔗 Genera un acceso seguro para que tu cliente suba documentación directamente.</div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+          <button class="btn btn-primary btn-sm" onclick="openModal('invitacion')">＋ Nueva invitación</button>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px">🔗 Invitaciones activas</div>
+          <div id="lista-invitaciones"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-title" style="margin-bottom:12px">📄 Documentos recibidos de clientes</div>
+          <div id="lista-docs-recibidos"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+        </div>
+      </div>
+
+      <!-- CHAT CON CLIENTES -->
+      <div class="page" id="page-chat-despacho">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:12px">💬 Conversaciones activas</div>
+            <div id="lista-conversaciones"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+          </div>
+          <div class="card" id="chat-despacho-panel">
+            <div class="empty"><div class="empty-icon">💬</div><div class="empty-title">Selecciona una conversación</div></div>
           </div>
         </div>
       </div>
@@ -1261,7 +1332,7 @@ function doSearch(q){
   el.style.display='block';
 }
 
-document.addEventListener('click',e=>{if(!e.target.closest('.search-box'))document.getElementById('search-results').style.display='none';});
+document.addEventListener('click',e=>{const sr=document.getElementById('search-results');if(sr&&!e.target.closest('.search-box'))sr.style.display='none';});
 
 // ── DASHBOARD ──
 async function loadDashboard(){
@@ -1271,19 +1342,24 @@ async function loadDashboard(){
     db.from('tareas').select('*',{count:'exact',head:true}).eq('completada',false),
     db.from('citas').select('*',{count:'exact',head:true}).gte('fecha_hora',new Date().toISOString())
   ]);
-  document.getElementById('kpi-clientes').textContent=totalCli||0;
-  document.getElementById('kpi-expedientes').textContent=totalExp||0;
-  document.getElementById('kpi-tareas').textContent=totalTar||0;
-  document.getElementById('kpi-citas').textContent=totalCit||0;
+  const{count:totalUrgentes}=await db.from('expedientes').select('*',{count:'exact',head:true}).eq('estado','urgente');
+  const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  s('kpi-clientes',totalCli||0);
+  s('kpi-activos',totalExp||0);
+  s('kpi-urgentes',totalUrgentes||0);
+  s('kpi-facturas',totalTar||0);
+  s('kpi-expedientes',totalExp||0);
+  s('kpi-tareas',totalTar||0);
+  s('kpi-citas',totalCit||0);
   const{data:recientes}=await db.from('expedientes').select('*,clientes(nombre,apellidos)').order('updated_at',{ascending:false}).limit(5);
-  const el=document.getElementById('expedientes-recientes');
+  const el=document.getElementById('dash-exps');
   if(el)el.innerHTML=(recientes||[]).map(e=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="showPage('expedientes')">
     <div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text)">${e.clientes?.nombre||''} ${e.clientes?.apellidos||''}</div>
     <div style="font-size:11px;color:var(--text3)">${e.numero} · ${e.tipo_tramite}</div></div>
     <span style="font-size:11px;padding:2px 8px;border-radius:8px;background:var(--accent-light);color:var(--accent)">${sLabel(e.estado)}</span>
   </div>`).join('');
   const{data:prox}=await db.from('citas').select('*,clientes(nombre,apellidos)').gte('fecha_hora',new Date().toISOString()).order('fecha_hora',{ascending:true}).limit(4);
-  const el2=document.getElementById('proximas-citas');
+  const el2=document.getElementById('dash-citas');
   if(el2)el2.innerHTML=(prox||[]).map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
     <div style="width:36px;height:36px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${new Date(c.fecha_hora).toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}</div>
     <div><div style="font-size:13px;font-weight:500">${c.clientes?.nombre||''} ${c.clientes?.apellidos||''}</div>
@@ -1451,7 +1527,7 @@ async function loadKanban(){
 // ── TAREAS ──
 async function loadTareas(){
   const{data}=await db.from('tareas').select('*,clientes(nombre,apellidos)').order('created_at',{ascending:false});
-  const el=document.getElementById('tabla-tareas');
+  const el=document.getElementById('lista-tareas');
   if(!el)return;
   const tareas=data||[];
   document.getElementById('badge-tar').textContent=tareas.filter(t=>!t.completada&&t.prioridad==='urgente').length||0;
@@ -1499,7 +1575,7 @@ async function editarTarea(id){
 // ── CITAS ──
 async function loadCitas(){
   const{data}=await db.from('citas').select('*,clientes(nombre,apellidos)').order('fecha_hora',{ascending:true});
-  const el=document.getElementById('tabla-citas');
+  const el=document.getElementById('cal-body');
   if(!el)return;
   const citas=data||[];
   const ahora=new Date();
