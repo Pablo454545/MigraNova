@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MigraNova — Gestión de Extranjería</title>
+<title>MigraNova v2 — Gestión de Extranjería</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -747,7 +747,7 @@ tr:hover td { background: rgba(37,99,235,0.03); }
                   <label>Email remitente *</label>
                   <input id="email-from" placeholder="despacho@tudominio.com">
                   <div style="font-size:11px;color:var(--text3);margin-top:4px">
-                    Debe estar verificado en Resend. Para pruebas: onboarding@resend.dev
+                    Debe estar verificado en Resend. Para pruebas: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f7989995989685939e9990b7859284929993d9939281">[email&#160;protected]</a>
                   </div>
                 </div>
                 <div class="form-group">
@@ -1395,7 +1395,7 @@ Si necesita cancelar o modificar la cita, contáctenos con antelación.
 </div>
 
 <div id="toast"></div>
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ══════════════════════════════════════
 // SUPABASE
 // ══════════════════════════════════════
@@ -2220,7 +2220,7 @@ window.showApp=function(){
 
 function fTime(d){if(!d)return'—';return new Date(d).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
 </script>
-
+<script>
 // ══════════════════════════════════════════════
 // MÓDULO PRESUPUESTOS + VERIFACTU
 // ══════════════════════════════════════════════
@@ -3719,11 +3719,10 @@ window.showPage = function(id) {
 const _showAppEmail = window.showApp;
 window.showApp = function() {
   _showAppEmail();
-  const saved = localStorage.getItem('migranova_email_config');
-  if (saved) emailConfig = JSON.parse(saved);
+  const saved = localStor
   const savedTpl = localStorage.getItem('migranova_email_plantillas');
   if (savedTpl) emailPlantillas = JSON.parse(savedTpl);
 };
-
+</script>
 </body>
 </html>
