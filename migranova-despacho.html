@@ -538,7 +538,7 @@ tr:hover td { background: rgba(37,99,235,0.03); }
 
   <main class="main">
     <div class="topbar">
-      <div class="page-title" id="pageTitle">Dashboard</div>
+      <div class="page-title" id="page-title-text">Dashboard</div>
       <div class="topbar-actions">
         <div id="db-status" title="Estado conexión base de datos" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:var(--bg3);border:1.5px solid var(--border);cursor:default;flex-shrink:0;transition:all 0.3s">
           <div id="db-led" style="width:9px;height:9px;border-radius:50%;background:#94a3b8;transition:background 0.3s;flex-shrink:0"></div>
@@ -578,20 +578,34 @@ tr:hover td { background: rgba(37,99,235,0.03); }
 
       <!-- EXPEDIENTES -->
       <div class="page" id="page-expedientes">
-        <div class="filters" id="filtros-exp">
-          <button class="filter-btn active" onclick="filtrarExp(null,this)">Todos</button>
-          <button class="filter-btn" onclick="filtrarExp('documentacion',this)">Documentación</button>
-          <button class="filter-btn" onclick="filtrarExp('presentado',this)">Presentado</button>
-          <button class="filter-btn" onclick="filtrarExp('en_tramite',this)">En Trámite</button>
-          <button class="filter-btn" onclick="filtrarExp('urgente',this)">Urgente</button>
-          <button class="filter-btn" onclick="filtrarExp('resuelto',this)">Resuelto</button>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <div class="filters" id="filtros-exp" style="margin-bottom:0;flex:1">
+            <button class="filter-btn active" onclick="filtrarExp(null,this)">Todos</button>
+            <button class="filter-btn" onclick="filtrarExp('documentacion',this)">Documentación</button>
+            <button class="filter-btn" onclick="filtrarExp('presentado',this)">Presentado</button>
+            <button class="filter-btn" onclick="filtrarExp('en_tramite',this)">En Trámite</button>
+            <button class="filter-btn" onclick="filtrarExp('urgente',this)">Urgente</button>
+            <button class="filter-btn" onclick="filtrarExp('resuelto',this)">Resuelto</button>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('expediente')">＋ Nuevo Expediente</button>
         </div>
-        <div class="card"><div id="tabla-exps"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
+        <div class="card">
+          <div id="tabla-expedientes"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+        </div>
       </div>
 
       <!-- CLIENTES -->
       <div class="page" id="page-clientes">
-        <div class="card"><div id="tabla-clientes"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <div class="search-box" style="flex:1;max-width:320px">
+            <span>🔍</span>
+            <input type="text" placeholder="Buscar cliente..." oninput="filtrarClientes(this.value)">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('cliente')">＋ Nuevo Cliente</button>
+        </div>
+        <div class="card">
+          <div id="tabla-clientes"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+        </div>
       </div>
 
       <!-- KANBAN -->
