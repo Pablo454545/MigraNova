@@ -1231,6 +1231,25 @@ Tiene documentación pendiente para el expediente {{numero}}.
 
 <script>
 // ══════════════════════════════════════
+// TOAST NOTIFICATION
+// ══════════════════════════════════════
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  const styles = {
+    success: { bg:'#f0fdf4', border:'#a7f3d0', color:'#166534' },
+    warn:    { bg:'#fef3c7', border:'#fde68a', color:'#92400e' },
+    danger:  { bg:'#fee2e2', border:'#fecaca', color:'#991b1b' },
+    info:    { bg:'#eff6ff', border:'#bfdbfe', color:'#1e40af' },
+  };
+  const s = styles[type] || styles.info;
+  t.style.cssText = `display:block;position:fixed;bottom:20px;right:20px;z-index:9999;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,0.12);background:${s.bg};border:1px solid ${s.border};color:${s.color};max-width:340px;animation:slideIn 0.2s ease`;
+  t.textContent = msg;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+
+// ══════════════════════════════════════
 // SUPABASE CONFIG
 // ══════════════════════════════════════
 const SUPA_URL='https://wybpwfnwvxgenkuskuwx.supabase.co';
@@ -1323,7 +1342,7 @@ function showPage(id){
 
 // ── SEARCH ──
 function doSearch(q){
-  if(!q){document.getElementById('search-results').style.display='none';return;}
+  if(!q){const _sr=document.getElementById('search-results');if(_sr)_sr.style.display='none';return;}
   const ql=q.toLowerCase();
   const res=allClients.filter(c=>(c.nombre+' '+c.apellidos+' '+(c.nie||'')+' '+(c.email||'')).toLowerCase().includes(ql));
   const el=document.getElementById('search-results');
@@ -1482,7 +1501,7 @@ async function guardarExp(){
   if(!cliId||!tipo){toast('Cliente y tipo de trámite son obligatorios','warn');return;}
   const datos={cliente_id:cliId,tipo_tramite:tipo,estado:document.getElementById('exp-estado').value,
     fecha_presentacion:document.getElementById('exp-fecha').value||null,
-    notas:document.getElementById('exp-notas').value,numero:''};
+    notas:document.getElementById('exp-notas').value};
   if(id){delete datos.numero;await db.from('expedientes').update(datos).eq('id',id);toast('Expediente actualizado','success');}
   else{await db.from('expedientes').insert(datos);toast('Expediente creado','success');}
   closeModal('expediente');loadExpedientes();
