@@ -540,7 +540,11 @@ tr:hover td { background: rgba(37,99,235,0.03); }
     <div class="topbar">
       <div class="page-title" id="pageTitle">Dashboard</div>
       <div class="topbar-actions">
-        <div class="search-box"><span>🔍</span><input type="text" id="search-input" placeholder="Buscar..." oninput="handleSearch(this.value)"></div>
+        <div id="db-status" title="Estado conexión base de datos" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:var(--bg3);border:1.5px solid var(--border);cursor:default;flex-shrink:0;transition:all 0.3s">
+          <div id="db-led" style="width:9px;height:9px;border-radius:50%;background:#94a3b8;transition:background 0.3s;flex-shrink:0"></div>
+          <span id="db-label" style="font-size:11.5px;font-weight:500;color:var(--text2)">Conectando...</span>
+        </div>
+        <div class="search-box"><span>🔍</span><input type="text" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)"></div>
         <div class="notif-bell" onclick="toggleNotifPanel()" id="notif-bell">🔔<div class="notif-count" id="notif-count" style="display:none">0</div></div>
         <button class="btn btn-primary btn-sm" onclick="openModal('expediente')">＋ Expediente</button>
         <button class="btn btn-ghost btn-sm" onclick="openModal('cliente')">＋ Cliente</button>
@@ -950,28 +954,75 @@ Tiene documentación pendiente para el expediente {{numero}}.
 
 <!-- MODAL NUEVA CITA -->
 <div class="modal-overlay" id="modal-cita">
-  <div class="modal">
+  <div class="modal" style="width:560px">
     <div class="modal-header"><div class="modal-title" id="modal-cit-title">Nueva Cita</div><div class="modal-close" onclick="closeModal('cita')">✕</div></div>
     <div class="modal-body">
       <input type="hidden" id="cit-id">
       <div class="form-grid">
-        <div class="form-group"><label>Cliente *</label><select id="cit-cliente"></select></div>
-        <div class="form-group"><label>Tipo</label>
-          <select id="cit-tipo">
-            <option value="oficina">En Oficina</option>
-            <option value="extranjeria">Extranjería</option>
-            <option value="videollamada">Videollamada</option>
-            <option value="otro">Otro</option>
+        <div class="form-group full">
+          <label>Cliente *</label>
+          <select id="cit-cliente" onchange="onCitClienteChange()">
+            <option value="">Seleccionar cliente...</option>
           </select>
         </div>
-        <div class="form-group"><label>Fecha y hora *</label><input type="datetime-local" id="cit-fecha"></div>
+        <div class="form-group"><label>Tipo</label>
+          <select id="cit-tipo">
+            <option value="oficina">🏢 En Oficina</option>
+            <option value="extranjeria">⚖️ Extranjería</option>
+            <option value="videollamada">💻 Videollamada</option>
+            <option value="otro">📋 Otro</option>
+          </select>
+        </div>
         <div class="form-group"><label>Duración (min)</label><input type="number" id="cit-duracion" value="30" min="15" step="15"></div>
-        <div class="form-group full"><label>Notas</label><textarea id="cit-notas"></textarea></div>
+        <div class="form-group"><label>Fecha y hora *</label><input type="datetime-local" id="cit-fecha"></div>
+        <div class="form-group"><label>Lugar / Dirección</label><input id="cit-lugar" placeholder="Ej: Oficina C/ Mayor 1, Madrid"></div>
+        <div class="form-group full"><label>Notas</label><textarea id="cit-notas" placeholder="Información adicional para el cliente..."></textarea></div>
+      </div>
+
+      <!-- INFO CLIENTE -->
+      <div id="cit-cliente-info" style="display:none;margin-top:10px;padding:11px 14px;background:var(--bg3);border-radius:9px;border:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px">Contacto del cliente</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="flex:1">
+            <div style="font-size:12px;color:var(--text2)">📧 Email</div>
+            <div id="cit-cliente-email" style="font-size:13px;font-weight:500;color:var(--text)">—</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:12px;color:var(--text2)">📱 Teléfono</div>
+            <div id="cit-cliente-tel" style="font-size:13px;font-weight:500;color:var(--text)">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECORDATORIOS -->
+      <div style="margin-top:14px;padding:12px 14px;background:#f0fdf4;border:1px solid #a7f3d0;border-radius:9px">
+        <div style="font-size:12px;font-weight:600;color:#166534;margin-bottom:8px">🔔 Recordatorios automáticos</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text)">
+            <input type="checkbox" id="rec-dia-antes" style="width:15px;height:15px" checked>
+            <span>📧 Email el día anterior a las 9:00h</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text)">
+            <input type="checkbox" id="rec-2h-antes" style="width:15px;height:15px" checked>
+            <span>📧 Email 2 horas antes de la cita</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text)">
+            <input type="checkbox" id="rec-whatsapp" style="width:15px;height:15px">
+            <span>💬 WhatsApp al guardar</span>
+          </label>
+        </div>
+        <div style="font-size:11px;color:#059669;margin-top:6px">ℹ️ Los emails se envían automáticamente si tienes Resend configurado en ⚙️ Email</div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('cita')">Cancelar</button>
-      <button class="btn btn-primary" onclick="guardarCita()">💾 Guardar cita</button>
+    <div class="modal-footer" style="justify-content:space-between">
+      <div style="display:flex;gap:7px">
+        <button class="btn btn-ghost btn-sm" id="btn-cit-whatsapp" onclick="enviarWhatsAppCita()" style="background:#25d366;color:#fff;border:none" disabled>💬 WhatsApp</button>
+        <button class="btn btn-ghost btn-sm" id="btn-cit-email" onclick="enviarEmailCitaDirecto()" disabled>📧 Email</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeModal('cita')">Cancelar</button>
+        <button class="btn btn-primary" onclick="guardarCita()">💾 Guardar cita</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1468,15 +1519,26 @@ async function guardarCita(){
 }
 
 async function editarCita(id){
-  const{data:c}=await db.from('citas').select('*').eq('id',id).single();
+  const{data:c}=await db.from('citas').select('*,clientes(*)').eq('id',id).single();
   if(!c)return;
   document.getElementById('modal-cit-title').textContent='Editar Cita';
   document.getElementById('cit-id').value=c.id;
-  populateCli('cit-cliente',c.cliente_id);
   document.getElementById('cit-tipo').value=c.tipo||'oficina';
   document.getElementById('cit-fecha').value=c.fecha_hora?c.fecha_hora.substring(0,16):'';
   document.getElementById('cit-duracion').value=c.duracion_minutos||30;
   document.getElementById('cit-notas').value=c.notas||'';
+  document.getElementById('cit-lugar').value=c.lugar||'';
+  // Poblar clientes y seleccionar el correcto
+  const sel=document.getElementById('cit-cliente');
+  sel.innerHTML='<option value="">Seleccionar cliente...</option>'+allClients.map(cl=>`<option value="${cl.id}" ${cl.id===c.cliente_id?'selected':''}>${cl.nombre} ${cl.apellidos}</option>`).join('');
+  // Mostrar info del cliente
+  if(c.clientes){
+    document.getElementById('cit-cliente-info').style.display='block';
+    document.getElementById('cit-cliente-email').textContent=c.clientes.email||'Sin email';
+    document.getElementById('cit-cliente-tel').textContent=c.clientes.telefono||'Sin teléfono';
+    document.getElementById('btn-cit-whatsapp').disabled=!c.clientes.telefono;
+    document.getElementById('btn-cit-email').disabled=!c.clientes.email;
+  }
   openModal('cita');
 }
 
@@ -2256,7 +2318,24 @@ function openModal(id){
   if(id==='cliente'){document.getElementById('modal-cli-title').textContent='Nuevo Cliente';document.getElementById('cli-id').value='';['cli-nombre','cli-apellidos','cli-pas','cli-nie','cli-tel','cli-email','cli-dir','cli-obs'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});document.getElementById('cli-nac').value='';document.getElementById('cli-fn').value='';}
   if(id==='expediente'){document.getElementById('modal-exp-title').textContent='Nuevo Expediente';document.getElementById('exp-id').value='';populateCli('exp-cliente');document.getElementById('exp-tipo').value='';document.getElementById('exp-estado').value='documentacion';document.getElementById('exp-fecha').value='';document.getElementById('exp-notas').value='';}
   if(id==='tarea'){document.getElementById('modal-tar-title').textContent='Nueva Tarea';document.getElementById('tar-id').value='';document.getElementById('tar-titulo').value='';document.getElementById('tar-prioridad').value='normal';document.getElementById('tar-fecha').value='';document.getElementById('tar-notas').value='';populateCli('tar-cliente');}
-  if(id==='cita'){document.getElementById('modal-cit-title').textContent='Nueva Cita';document.getElementById('cit-id').value='';populateCli('cit-cliente');document.getElementById('cit-tipo').value='oficina';document.getElementById('cit-fecha').value='';document.getElementById('cit-duracion').value='30';document.getElementById('cit-notas').value='';}
+  if(id==='cita'){
+    document.getElementById('modal-cit-title').textContent='Nueva Cita';
+    document.getElementById('cit-id').value='';
+    document.getElementById('cit-tipo').value='oficina';
+    document.getElementById('cit-fecha').value='';
+    document.getElementById('cit-duracion').value='30';
+    document.getElementById('cit-notas').value='';
+    document.getElementById('cit-lugar').value='';
+    document.getElementById('cit-cliente-info').style.display='none';
+    document.getElementById('rec-dia-antes').checked=true;
+    document.getElementById('rec-2h-antes').checked=true;
+    document.getElementById('rec-whatsapp').checked=false;
+    document.getElementById('btn-cit-whatsapp').disabled=true;
+    document.getElementById('btn-cit-email').disabled=true;
+    // Poblar clientes
+    const sel=document.getElementById('cit-cliente');
+    sel.innerHTML='<option value="">Seleccionar cliente...</option>'+allClients.map(c=>`<option value="${c.id}">${c.nombre} ${c.apellidos}</option>`).join('');
+  }
   if(id==='invitacion'){populateCli('inv-cliente');document.getElementById('inv-email').value='';document.getElementById('inv-pass').value='';document.getElementById('inv-expediente').innerHTML='<option value="">Primero selecciona un cliente</option>';}
   if(id==='presupuesto'){document.getElementById('modal-pres-title').textContent='Nuevo Presupuesto';document.getElementById('modal-pres-num').textContent='';document.getElementById('pres-id').value='';['pres-titulo','pres-desc'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});document.getElementById('pres-condiciones').value='Presupuesto válido por el plazo indicado.';document.getElementById('pres-dto').value='0';document.getElementById('pres-iva').value='21';document.getElementById('pres-validez').value='30';lineas=[];renderLineas();addLinea('',1,0);populateCli('pres-cliente');document.getElementById('pres-expediente').innerHTML='<option value="">Sin expediente</option>';}
 }
@@ -2274,6 +2353,72 @@ const emptyHTML=(icon,title,sub)=>`<div class="empty"><div class="empty-icon">${
 
 document.getElementById('login-password')?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 init();
+
+async function enviarWhatsAppDesdePanel(citaId) {
+  const cita = calCitas.find(c => c.id === citaId);
+  if (!cita || !cita.clientes?.telefono) return;
+  const fechaObj = new Date(cita.fecha_hora);
+  const fechaStr = fechaObj.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  const horaStr = fechaObj.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  const msg = encodeURIComponent(`Hola ${cita.clientes.nombre}, le recordamos su cita en MigraNova:\n📅 ${fechaStr} a las ${horaStr}\n📍 ${cita.lugar||'Consulte con el despacho'}\n\nSi necesita cancelar, contáctenos. Gracias.`);
+  const tel = cita.clientes.telefono.replace(/\D/g,'');
+  window.open('https://wa.me/' + tel + '?text=' + msg, '_blank');
+}
+
+async function enviarEmailDesdePanel(citaId) {
+  const cita = calCitas.find(c => c.id === citaId);
+  if (!cita || !cita.clientes?.email) return;
+  const fechaObj = new Date(cita.fecha_hora);
+  const body = `Estimado/a ${cita.clientes.nombre} ${cita.clientes.apellidos},\n\nLe recordamos su cita:\n\n📅 ${fechaObj.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}\n⏰ ${fechaObj.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}\n${cita.lugar?'📍 '+cita.lugar+'\n':''}${cita.notas?'\nℹ️ '+cita.notas+'\n':''}\n${emailConfig?.firma||'Atentamente,\nMigraNova'}`;
+  const ok = await enviarEmail({ to: cita.clientes.email, toName: cita.clientes.nombre+' '+cita.clientes.apellidos, asunto: 'Recordatorio de cita — MigraNova', body, tipo: 'cita' });
+  if (ok) toast('Email enviado a ' + cita.clientes.email, 'success');
+}
+
+
+// ══════════════════════════════════════
+// COMPROBACIÓN DE CONEXIÓN A SUPABASE
+// ══════════════════════════════════════
+async function checkDBConnection() {
+  const led = document.getElementById('db-led');
+  const label = document.getElementById('db-label');
+  const badge = document.getElementById('db-status');
+  if (!led || !label) return;
+
+  // Estado: comprobando
+  led.style.background = '#f59e0b';
+  label.textContent = 'Conectando...';
+
+  try {
+    const start = Date.now();
+    const { error } = await db.from('perfiles').select('id').limit(1);
+    const ms = Date.now() - start;
+
+    if (error) throw error;
+
+    // Conectado ✅
+    led.style.background = '#22c55e';
+    led.style.boxShadow = '0 0 6px #22c55e88';
+    label.textContent = `BD conectada (${ms}ms)`;
+    badge.style.borderColor = '#bbf7d0';
+    badge.style.background = '#f0fdf4';
+    label.style.color = '#166534';
+
+  } catch (e) {
+    // Error ❌
+    led.style.background = '#ef4444';
+    led.style.boxShadow = '0 0 6px #ef444488';
+    label.textContent = 'Sin conexión';
+    badge.style.borderColor = '#fecaca';
+    badge.style.background = '#fef2f2';
+    label.style.color = '#991b1b';
+    console.error('Supabase connection error:', e.message);
+  }
+}
+
+// Comprobar al cargar y cada 30 segundos
+setTimeout(checkDBConnection, 1500);
+setInterval(checkDBConnection, 30000);
+
 </script>
 </body>
 </html>
@@ -2525,12 +2670,14 @@ async function mostrarCitaPanel(id) {
   const btnEditar = document.getElementById('btn-editar-cita-panel');
   if (btnEditar) btnEditar.setAttribute('onclick', `editarCita('${id}')`);
 
+  const cli = cita.clientes;
   body.innerHTML = `
     <div class="cita-detail-tipo" style="background:${col.bg};color:${col.color};border:1px solid ${col.border}">
       ${{oficina:'🏢',extranjeria:'⚖️',videollamada:'💻',otro:'📋'}[cita.tipo]||'📋'} ${cita.tipo||'—'}
     </div>
-    <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:12px">${cita.clientes?.nombre||'—'} ${cita.clientes?.apellidos||''}</div>
-    <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:4px">${cita.clientes?.nombre||'—'} ${cita.clientes?.apellidos||''}</div>
+    ${cli?.email?`<div style="font-size:12px;color:var(--text3);margin-bottom:12px">📧 ${cli.email} ${cli.telefono?'· 📱 '+cli.telefono:''}</div>`:''}
+    <div style="display:flex;flex-direction:column;gap:9px">
       <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:var(--bg3);border-radius:8px">
         <span style="font-size:18px">📅</span>
         <div>
@@ -2539,14 +2686,21 @@ async function mostrarCitaPanel(id) {
           <div style="font-size:13px;color:var(--text2)">${new Date(cita.fecha_hora).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})} ${cita.duracion_minutos?'· '+cita.duracion_minutos+' min':''}</div>
         </div>
       </div>
+      ${cita.lugar?`<div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:var(--bg3);border-radius:8px"><span style="font-size:18px">📍</span><div><div style="font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Lugar</div><div style="font-size:13px;color:var(--text)">${cita.lugar}</div></div></div>`:''}
       ${cita.notas?`<div style="padding:10px;background:var(--bg3);border-radius:8px">
         <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Notas</div>
         <div style="font-size:13px;color:var(--text)">${cita.notas}</div>
       </div>`:''}
     </div>
-    <div style="display:flex;gap:8px;margin-top:20px">
-      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="eliminarCita('${id}')">🗑 Eliminar</button>
-      <button class="btn btn-primary btn-sm" style="flex:1" onclick="editarCita('${id}');cerrarCitaPanel()">✏️ Editar</button>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+      <div style="display:flex;gap:7px">
+        ${cli?.telefono?`<button class="btn btn-sm" style="flex:1;background:#25d366;color:#fff;border:none;cursor:pointer" onclick="enviarWhatsAppDesdePanel('${id}')">💬 WhatsApp</button>`:''}
+        ${cli?.email?`<button class="btn btn-ghost btn-sm" style="flex:1" onclick="enviarEmailDesdePanel('${id}')">📧 Email</button>`:''}
+      </div>
+      <div style="display:flex;gap:7px">
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="eliminarCita('${id}')">🗑 Eliminar</button>
+        <button class="btn btn-primary btn-sm" style="flex:1" onclick="editarCita('${id}');cerrarCitaPanel()">✏️ Editar</button>
+      </div>
     </div>`;
   panel.classList.add('open');
 }
@@ -2581,7 +2735,6 @@ window.loadCitas = async function() {
   renderCalendario();
 };
 
-const _guardarCitaOrig = window.guardarCita;
 window.guardarCita = async function() {
   const id = document.getElementById('cit-id').value;
   const datos = {
@@ -2589,13 +2742,164 @@ window.guardarCita = async function() {
     tipo: document.getElementById('cit-tipo').value,
     fecha_hora: document.getElementById('cit-fecha').value,
     duracion_minutos: parseInt(document.getElementById('cit-duracion').value) || 30,
-    notas: document.getElementById('cit-notas').value
+    notas: document.getElementById('cit-notas').value,
+    lugar: document.getElementById('cit-lugar')?.value || ''
   };
   if (!datos.cliente_id || !datos.fecha_hora) { toast('Cliente y fecha son obligatorios', 'warn'); return; }
   if (id) await db.from('citas').update(datos).eq('id', id);
   else await db.from('citas').insert(datos);
-  toast('Cita guardada', 'success');
+
+  // Recordatorios
+  const recDia = document.getElementById('rec-dia-antes')?.checked;
+  const rec2h = document.getElementById('rec-2h-antes')?.checked;
+  const recWA = document.getElementById('rec-whatsapp')?.checked;
+  const cli = allClients.find(c => c.id === datos.cliente_id);
+  const fechaCita = new Date(datos.fecha_hora);
+
+  if (cli && emailConfig?.apiKey) {
+    if (recDia && cli.email) {
+      programarRecordatorioEmail(cli, datos, fechaCita, 'dia');
+    }
+    if (rec2h && cli.email) {
+      programarRecordatorioEmail(cli, datos, fechaCita, '2h');
+    }
+  }
+  if (recWA && cli?.telefono) {
+    enviarWhatsAppCitaDirecto(cli, datos);
+  }
+
+  toast('Cita guardada ✅', 'success');
   closeModal('cita');
   loadCitas();
 };
+
+// Programar recordatorio (envío inmediato si la fecha ya pasó el umbral, sino aviso)
+async function programarRecordatorioEmail(cli, cita, fechaCita, tipo) {
+  const ahora = new Date();
+  const diffMs = fechaCita - ahora;
+  const diffH = diffMs / (1000 * 60 * 60);
+
+  let debeEnviar = false;
+  let labelTiempo = '';
+
+  if (tipo === 'dia') {
+    // Enviar si faltan entre 20h y 28h para la cita
+    debeEnviar = diffH >= 20 && diffH <= 28;
+    labelTiempo = 'mañana';
+  } else if (tipo === '2h') {
+    // Enviar si faltan entre 1.5h y 2.5h
+    debeEnviar = diffH >= 1.5 && diffH <= 2.5;
+    labelTiempo = 'en 2 horas';
+  }
+
+  const fechaFormato = fechaCita.toLocaleDateString('es-ES', {weekday:'long',day:'numeric',month:'long'});
+  const horaFormato = fechaCita.toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'});
+  const lugar = cita.lugar || 'Consulte con el despacho';
+
+  const asunto = `Recordatorio de cita — ${fechaFormato}`;
+  const body = `Estimado/a ${cli.nombre} ${cli.apellidos},
+
+Le recordamos que tiene una cita con nuestro despacho ${labelTiempo||'próximamente'}:
+
+📅 Fecha: ${fechaFormato}
+⏰ Hora: ${horaFormato}
+📍 Lugar: ${lugar}
+🕐 Duración aproximada: ${cita.duracion_minutos || 30} minutos
+
+${cita.notas ? 'ℹ️ ' + cita.notas + '\n\n' : ''}Si necesita cancelar o modificar la cita, contáctenos con antelación.
+
+${emailConfig?.firma || 'Atentamente,\nMigraNova — Gestión de Extranjería'}`;
+
+  if (debeEnviar) {
+    await enviarEmail({ to: cli.email, toName: cli.nombre+' '+cli.apellidos, asunto, body, tipo: 'cita' });
+    toast('Recordatorio enviado a ' + cli.email, 'success');
+  } else if (diffH > 0) {
+    // Guardar en localStorage para envío pendiente
+    const pendientes = JSON.parse(localStorage.getItem('recordatorios_pendientes') || '[]');
+    const enviarEn = tipo === 'dia'
+      ? new Date(fechaCita.getTime() - 24*60*60*1000).setHours(9,0,0,0)
+      : fechaCita.getTime() - 2*60*60*1000;
+    pendientes.push({ tipo, clienteEmail: cli.email, toName: cli.nombre+' '+cli.apellidos, asunto, body, enviarEn, citaId: cita.id || '' });
+    localStorage.setItem('recordatorios_pendientes', JSON.stringify(pendientes));
+    toast(`Recordatorio programado para ${tipo === 'dia' ? 'el día anterior' : '2h antes'}`, 'info');
+  }
+}
+
+// Verificar recordatorios pendientes cada 5 minutos
+async function verificarRecordatoriosPendientes() {
+  const pendientes = JSON.parse(localStorage.getItem('recordatorios_pendientes') || '[]');
+  if (!pendientes.length || !emailConfig?.apiKey) return;
+  const ahora = Date.now();
+  const restantes = [];
+  for (const r of pendientes) {
+    if (ahora >= r.enviarEn) {
+      await enviarEmail({ to: r.clienteEmail, toName: r.toName, asunto: r.asunto, body: r.body, tipo: 'cita' });
+    } else {
+      restantes.push(r);
+    }
+  }
+  localStorage.setItem('recordatorios_pendientes', JSON.stringify(restantes));
+}
+setInterval(verificarRecordatoriosPendientes, 5 * 60 * 1000);
+setTimeout(verificarRecordatoriosPendientes, 5000); // También al cargar
+
+// Cuando el cliente cambia en el modal de cita
+function onCitClienteChange() {
+  const cliId = document.getElementById('cit-cliente').value;
+  const cli = allClients.find(c => c.id === cliId);
+  const infoEl = document.getElementById('cit-cliente-info');
+  const waBtn = document.getElementById('btn-cit-whatsapp');
+  const mailBtn = document.getElementById('btn-cit-email');
+  if (!cli || !cliId) {
+    infoEl.style.display = 'none';
+    waBtn.disabled = true; mailBtn.disabled = true;
+    return;
+  }
+  infoEl.style.display = 'block';
+  document.getElementById('cit-cliente-email').textContent = cli.email || 'Sin email';
+  document.getElementById('cit-cliente-tel').textContent = cli.telefono || 'Sin teléfono';
+  waBtn.disabled = !cli.telefono;
+  mailBtn.disabled = !cli.email;
+}
+
+// WhatsApp directo
+function enviarWhatsAppCita() {
+  const cliId = document.getElementById('cit-cliente').value;
+  const cli = allClients.find(c => c.id === cliId);
+  if (!cli?.telefono) { toast('El cliente no tiene teléfono registrado', 'warn'); return; }
+  const fecha = document.getElementById('cit-fecha').value;
+  const lugar = document.getElementById('cit-lugar').value;
+  if (!fecha) { toast('Selecciona primero la fecha', 'warn'); return; }
+  const fechaObj = new Date(fecha);
+  const fechaStr = fechaObj.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  const horaStr = fechaObj.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  const msg = encodeURIComponent(`Hola ${cli.nombre}, le recordamos su cita en MigraNova:\n📅 ${fechaStr} a las ${horaStr}\n📍 ${lugar||'Consulte con el despacho'}\n\nSi necesita cancelar, contáctenos. Gracias.`);
+  const tel = cli.telefono.replace(/\D/g,'');
+  window.open('https://wa.me/' + tel + '?text=' + msg, '_blank');
+}
+
+function enviarWhatsAppCitaDirecto(cli, cita) {
+  if (!cli?.telefono) return;
+  const fechaObj = new Date(cita.fecha_hora);
+  const fechaStr = fechaObj.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  const horaStr = fechaObj.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  const msg = encodeURIComponent(`Hola ${cli.nombre}, le confirmamos su cita en MigraNova:\n📅 ${fechaStr} a las ${horaStr}\n📍 ${cita.lugar||'Consulte con el despacho'}\n\nSi necesita cancelar, contáctenos. Gracias.`);
+  const tel = cli.telefono.replace(/\D/g,'');
+  window.open('https://wa.me/' + tel + '?text=' + msg, '_blank');
+}
+
+// Email directo desde el modal
+async function enviarEmailCitaDirecto() {
+  const cliId = document.getElementById('cit-cliente').value;
+  const cli = allClients.find(c => c.id === cliId);
+  if (!cli?.email) { toast('El cliente no tiene email registrado', 'warn'); return; }
+  const fecha = document.getElementById('cit-fecha').value;
+  const lugar = document.getElementById('cit-lugar').value;
+  const notas = document.getElementById('cit-notas').value;
+  if (!fecha) { toast('Selecciona primero la fecha', 'warn'); return; }
+  const fechaObj = new Date(fecha);
+  const body = `Estimado/a ${cli.nombre} ${cli.apellidos},\n\nLe confirmamos su cita:\n\n📅 ${fechaObj.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}\n⏰ ${fechaObj.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}\n📍 ${lugar||'Consulte con el despacho'}\n${notas?'\nℹ️ '+notas+'\n':''}\n${emailConfig?.firma||'Atentamente,\nMigraNova'}`;
+  const ok = await enviarEmail({ to: cli.email, toName: cli.nombre+' '+cli.apellidos, asunto: 'Confirmación de cita — MigraNova', body, tipo: 'cita' });
+  if (ok) toast('Email de confirmación enviado a ' + cli.email, 'success');
+}
 </script>
