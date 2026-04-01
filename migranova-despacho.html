@@ -352,6 +352,61 @@ tr:hover td { background: rgba(37,99,235,0.03); }
 .add-pres-btn{padding:5px 12px;border-radius:7px;background:var(--accent);color:#fff;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;white-space:nowrap;}
 .add-pres-btn:hover{background:#1d4ed8;}
 .cli-pres-sin-exps{padding:12px 16px 12px 66px;font-size:12.5px;color:var(--text3);font-style:italic;}
+
+/* ══ CONTROL HORARIO ══ */
+.fichar-wrap{background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:2px solid var(--border);border-radius:16px;padding:28px;text-align:center;margin-bottom:18px;}
+.reloj-digital{font-family:'DM Serif Display',serif;font-size:48px;color:var(--text);letter-spacing:2px;line-height:1;margin-bottom:4px;}
+.reloj-fecha{font-size:13px;color:var(--text3);margin-bottom:20px;}
+.fichar-estado{display:inline-flex;align-items:center;gap:7px;padding:6px 16px;border-radius:20px;font-size:12.5px;font-weight:600;margin-bottom:18px;}
+.fichar-estado.fuera{background:#fee2e2;border:1px solid #fecaca;color:#991b1b;}
+.fichar-estado.dentro{background:#dcfce7;border:1px solid #a7f3d0;color:#166534;}
+.fichar-estado.pausa{background:#fef3c7;border:1px solid #fde68a;color:#92400e;}
+.fichar-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn-fichar{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 22px;border-radius:12px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;transition:all 0.15s;min-width:120px;}
+.btn-fichar:disabled{opacity:0.35;cursor:not-allowed;}
+.btn-fichar .btn-icon{font-size:22px;}
+.btn-entrada{background:#059669;color:#fff;}
+.btn-entrada:hover:not(:disabled){background:#047857;}
+.btn-salida{background:#dc2626;color:#fff;}
+.btn-salida:hover:not(:disabled){background:#b91c1c;}
+.btn-pausa{background:#d97706;color:#fff;}
+.btn-pausa:hover:not(:disabled){background:#b45309;}
+.btn-fin-pausa{background:#2563eb;color:#fff;}
+.btn-fin-pausa:hover:not(:disabled){background:#1d4ed8;}
+
+.jornada-timer{font-size:22px;font-weight:700;color:var(--accent);font-family:'DM Serif Display',serif;margin-top:10px;}
+.jornada-timer-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
+
+.registro-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:6px;font-size:12.5px;}
+.registro-row.entrada{background:#dcfce7;border:1px solid #a7f3d0;}
+.registro-row.salida{background:#fee2e2;border:1px solid #fecaca;}
+.registro-row.inicio_pausa{background:#fef3c7;border:1px solid #fde68a;}
+.registro-row.fin_pausa{background:#eff6ff;border:1px solid #bfdbfe;}
+.registro-tipo-icon{font-size:18px;flex-shrink:0;}
+.registro-hora{font-weight:700;font-size:14px;min-width:60px;}
+.registro-info{flex:1;color:var(--text2);}
+.registro-hash{font-size:9px;font-family:monospace;color:var(--text3);}
+
+.usuario-horario-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;}
+.usuario-horario-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.usuario-horas{display:flex;gap:12px;}
+.hora-stat{text-align:center;padding:8px 12px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);}
+.hora-stat-val{font-size:17px;font-weight:700;color:var(--text);}
+.hora-stat-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;}
+.hora-stat.extra .hora-stat-val{color:var(--red);}
+.hora-stat.efectivo .hora-stat-val{color:var(--green);}
+
+.semana-nav{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.semana-label{font-size:13px;font-weight:500;color:var(--text);flex:1;text-align:center;}
+
+.estado-jornada{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600;}
+.ej-abierta{background:#dcfce7;color:#166534;}
+.ej-cerrada{background:#f1f5f9;color:#475569;}
+.ej-incompleta{background:#fee2e2;color:#991b1b;}
+.ej-justificada{background:#fef3c7;color:#92400e;}
+
+.normativa-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;color:#1e40af;}
+.normativa-box ul{margin-left:16px;margin-top:6px;line-height:1.8;}
 </style>
 </head>
 <body>
@@ -401,6 +456,10 @@ tr:hover td { background: rgba(37,99,235,0.03); }
         <div class="nav-label">Comunicación</div>
         <div class="nav-item" onclick="showPage('invitaciones')"><span class="icon">🔗</span>Portal Clientes<span class="badge-new">NEW</span></div>
         <div class="nav-item" onclick="showPage('chat-despacho')"><span class="icon">💬</span>Chat Clientes<span class="badge red" id="badge-chat">0</span></div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Laboral</div>
+        <div class="nav-item" onclick="showPage('control-horario')"><span class="icon">🕐</span>Control Horario<span class="badge blue" id="badge-fichaje" style="display:none">●</span></div>
       </div>
       <div class="nav-section">
         <div class="nav-label">Configuración</div>
@@ -514,6 +573,144 @@ tr:hover td { background: rgba(37,99,235,0.03); }
             <div class="empty"><div class="empty-icon">⚙️</div><div class="empty-title">Selecciona un trámite</div><div style="font-size:12px">Elige un tipo de trámite para ver su configuración legal completa</div></div>
           </div>
         </div>
+      </div>
+
+
+      <!-- DATOS FISCALES + VERIFACTU -->
+      <div class="page" id="page-datos-fiscales">
+        <div class="grid-2">
+          <div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:14px">🏢 Datos del Despacho (Emisor)</div>
+              <div class="form-grid">
+                <div class="form-group"><label>NIF / CIF *</label><input id="df-nif" placeholder="B12345678 o 12345678A"></div>
+                <div class="form-group"><label>Razón Social *</label><input id="df-razon" placeholder="MigraNova Despacho S.L."></div>
+                <div class="form-group"><label>Nombre Comercial</label><input id="df-comercial" placeholder="MigraNova"></div>
+                <div class="form-group"><label>Régimen IVA</label><select id="df-iva-reg"><option value="General">General</option><option value="Exento">Exento</option><option value="Recargo equivalencia">Recargo equivalencia</option></select></div>
+                <div class="form-group full"><label>Dirección fiscal *</label><input id="df-dir" placeholder="Calle, número, piso"></div>
+                <div class="form-group"><label>Código Postal *</label><input id="df-cp" placeholder="28001"></div>
+                <div class="form-group"><label>Ciudad *</label><input id="df-ciudad" placeholder="Madrid"></div>
+                <div class="form-group"><label>Provincia</label><input id="df-prov" placeholder="Madrid"></div>
+                <div class="form-group"><label>Email facturación</label><input type="email" id="df-email" placeholder="facturas@migranova.es"></div>
+                <div class="form-group"><label>Teléfono</label><input id="df-tel" placeholder="+34 91 000 00 00"></div>
+                <div class="form-group full"><label>Pie de factura</label><textarea id="df-pie" style="min-height:60px">Factura conforme al RD 1619/2012. Sistema conforme al RD 1007/2023 (VERI*FACTU).</textarea></div>
+              </div>
+              <div style="display:flex;justify-content:flex-end;margin-top:12px">
+                <button class="btn btn-primary btn-sm" onclick="guardarDatosFiscales()">💾 Guardar datos fiscales</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:10px">⚡ Estado VeriFactu</div>
+              <div class="vf-status vf-ok" id="vf-status-badge">✅ Sistema conforme RD 1007/2023 — Registros encadenados SHA-256</div>
+              <div class="alert info" style="font-size:12px;margin-bottom:12px">ℹ️ <strong>Plazos:</strong> Empresas (IS) → 1 enero 2027 · Autónomos (IRPF) → 1 julio 2027</div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:500">Último encadenamiento:</div>
+              <div class="vf-chain" id="vf-ultimo-hash">Sin facturas emitidas aún</div>
+              <div style="margin-top:14px">
+                <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Registro de facturas</div>
+                <div id="vf-registro-tabla"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+              </div>
+            </div>
+            <div class="card" style="margin-top:14px">
+              <div class="card-title" style="margin-bottom:10px">📋 Cumplimiento normativo</div>
+              <div style="display:flex;flex-direction:column;gap:7px;font-size:12.5px">
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f0fdf4;border-radius:7px;border:1px solid #a7f3d0"><span>✅</span><span style="color:#166534">Numeración correlativa e inalterable</span></div>
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f0fdf4;border-radius:7px;border:1px solid #a7f3d0"><span>✅</span><span style="color:#166534">Hash SHA-256 encadenado por factura</span></div>
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f0fdf4;border-radius:7px;border:1px solid #a7f3d0"><span>✅</span><span style="color:#166534">Código QR con URL verificación AEAT</span></div>
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f0fdf4;border-radius:7px;border:1px solid #a7f3d0"><span>✅</span><span style="color:#166534">Leyenda VERI*FACTU en cada factura</span></div>
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f0fdf4;border-radius:7px;border:1px solid #a7f3d0"><span>✅</span><span style="color:#166534">Facturas emitidas bloqueadas</span></div>
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fef3c7;border-radius:7px;border:1px solid #fde68a"><span>⏳</span><span style="color:#92400e">Envío AEAT voluntario — disponible 2027</span></div>
+              </div>
+              <div style="margin-top:12px;font-size:10.5px;color:var(--text3)">Base legal: RD 1007/2023 · Orden HAC/1177/2024 · RD 1619/2012</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTROL HORARIO -->
+      <div class="page" id="page-control-horario">
+
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:#1e40af">
+          ⚖️ <strong>Base legal:</strong> RDL 8/2019 · Art. 34.9 Estatuto de los Trabajadores
+          — Registro digital obligatorio · Hash SHA-256 inalterable · Conservación 4 años · Sanciones: 751€–7.500€/trabajador
+        </div>
+
+        <!-- FILA 1: Widget fichaje + Estado equipo -->
+        <div class="grid-2" style="margin-bottom:16px">
+
+          <!-- Mi fichaje -->
+          <div>
+            <div class="fichar-wrap">
+              <div class="reloj-digital" id="reloj-ch">00:00:00</div>
+              <div class="reloj-fecha" id="fecha-ch">—</div>
+              <div class="fichar-estado fuera" id="estado-fichaje-badge">⬛ Sin fichar</div>
+              <div style="margin-top:6px">
+                <div class="jornada-timer-label">Tiempo trabajado hoy</div>
+                <div class="jornada-timer" id="timer-jornada">00:00:00</div>
+              </div>
+              <div class="fichar-btns" style="margin-top:18px">
+                <button class="btn-fichar btn-entrada" id="btn-entrada" onclick="fichar('entrada')">
+                  <span class="btn-icon">▶️</span>Entrada
+                </button>
+                <button class="btn-fichar btn-pausa" id="btn-pausa" onclick="fichar('inicio_pausa')" disabled>
+                  <span class="btn-icon">⏸️</span>Pausa
+                </button>
+                <button class="btn-fichar btn-fin-pausa" id="btn-fin-pausa" onclick="fichar('fin_pausa')" disabled>
+                  <span class="btn-icon">▶️</span>Fin pausa
+                </button>
+                <button class="btn-fichar btn-salida" id="btn-salida" onclick="fichar('salida')" disabled>
+                  <span class="btn-icon">⏹️</span>Salida
+                </button>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:0">
+              <div class="card-header">
+                <div class="card-title">📋 Mis fichajes hoy</div>
+                <button class="btn btn-ghost btn-sm" onclick="loadMisFichajesHoy()">↻ Actualizar</button>
+              </div>
+              <div id="mis-fichajes-hoy"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+            </div>
+          </div>
+
+          <!-- Estado equipo + semana -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">👥 Estado del equipo ahora</div>
+                <button class="btn btn-ghost btn-sm" onclick="loadEstadoEquipo()">↻</button>
+              </div>
+              <div id="estado-equipo"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><div class="card-title">📊 Resumen semanal</div></div>
+              <div class="semana-nav">
+                <button class="btn btn-ghost btn-sm" onclick="cambiarSemana(-1)">← Anterior</button>
+                <div class="semana-label" id="semana-label">Esta semana</div>
+                <button class="btn btn-ghost btn-sm" onclick="cambiarSemana(1)">Siguiente →</button>
+              </div>
+              <div id="resumen-semana"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILA 2: Histórico completo -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📅 Registro completo de jornadas</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select id="filtro-usuario-ch" onchange="loadHistorico()" style="padding:5px 9px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:12px">
+                <option value="">Todos los usuarios</option>
+              </select>
+              <input type="month" id="filtro-mes-ch" onchange="loadHistorico()" style="padding:5px 9px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:12px">
+              <button class="btn btn-ghost btn-sm" onclick="exportarCSV()">⬇ Exportar para Inspección</button>
+            </div>
+          </div>
+          <div id="historico-jornadas"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+        </div>
+
       </div>
 
     </div>
@@ -875,7 +1072,7 @@ function showLoginErr(m){const e=document.getElementById('login-error');e.textCo
 // ══════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════
-const TITLES={dashboard:'Dashboard',expedientes:'Expedientes',clientes:'Clientes',kanban:'Estado de Trámites',tareas:'Tareas',citas:'Citas',presupuestos:'Presupuestos',facturas:'Facturación',config:'Configuración de Trámites','datos-fiscales':'Datos Fiscales & VeriFactu',invitaciones:'Portal Clientes','chat-despacho':'Chat con Clientes'};
+const TITLES={dashboard:'Dashboard',expedientes:'Expedientes',clientes:'Clientes',kanban:'Estado de Trámites',tareas:'Tareas',citas:'Citas',presupuestos:'Presupuestos',facturas:'Facturación',config:'Configuración de Trámites','datos-fiscales':'Datos Fiscales & VeriFactu','control-horario':'Control Horario',invitaciones:'Portal Clientes','chat-despacho':'Chat con Clientes'};
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -2309,6 +2506,452 @@ window.showPage = function(id) {
     loadClientesPres();
   }
 };
+
+
+// ══════════════════════════════════════════════
+// CONTROL HORARIO
+// Base legal: RDL 8/2019 · Art.34.9 ET
+// ══════════════════════════════════════════════
+
+let estadoFichaje = 'fuera'; // 'fuera' | 'dentro' | 'pausa'
+let fichajeEntrada = null;
+let semanaOffset = 0;
+let timerJornada = null;
+let segundosTrabajados = 0;
+let relojInterval = null;
+
+// ── RELOJ EN TIEMPO REAL ──
+function iniciarReloj() {
+  if (relojInterval) clearInterval(relojInterval);
+  relojInterval = setInterval(() => {
+    const now = new Date();
+    document.getElementById('reloj-ch').textContent =
+      now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    document.getElementById('fecha-ch').textContent =
+      now.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }, 1000);
+}
+
+function iniciarTimerJornada() {
+  if (timerJornada) clearInterval(timerJornada);
+  timerJornada = setInterval(() => {
+    if (estadoFichaje === 'dentro') {
+      segundosTrabajados++;
+      const h = Math.floor(segundosTrabajados / 3600);
+      const m = Math.floor((segundosTrabajados % 3600) / 60);
+      const s = segundosTrabajados % 60;
+      document.getElementById('timer-jornada').textContent =
+        `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+  }, 1000);
+}
+
+// ── HASH SHA-256 (reutiliza la función de VeriFactu) ──
+async function hashFichaje(usuarioId, tipo, timestamp, hashAnterior) {
+  const msg = [usuarioId, tipo, timestamp, hashAnterior || ''].join('|');
+  const buf = new TextEncoder().encode(msg);
+  const hb = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hb)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── FICHAR ──
+async function fichar(tipo) {
+  if (!currentUser) return;
+  const ahora = new Date();
+  const tsLocal = ahora.toLocaleString('es-ES', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit', second:'2-digit'
+  });
+
+  // Obtener último hash del usuario para encadenamiento
+  const { data: ultimo } = await db.from('fichajes')
+    .select('hash_registro')
+    .eq('usuario_id', currentUser.id)
+    .order('timestamp_utc', { ascending: false })
+    .limit(1).single();
+
+  const hashAnt = ultimo?.hash_registro || null;
+  const hashReg = await hashFichaje(currentUser.id, tipo, ahora.toISOString(), hashAnt);
+
+  const { error } = await db.from('fichajes').insert({
+    usuario_id: currentUser.id,
+    tipo,
+    timestamp_utc: ahora.toISOString(),
+    timestamp_local: tsLocal,
+    ip_origen: 'web-app',
+    dispositivo: navigator.userAgent.substring(0, 100),
+    metodo: 'web',
+    hash_registro: hashReg,
+    hash_anterior: hashAnt
+  });
+
+  if (error) { toast('Error al registrar fichaje: ' + error.message, 'danger'); return; }
+
+  // Actualizar estado visual
+  actualizarEstadoBotones(tipo);
+
+  // Actualizar o crear jornada del día
+  await actualizarJornada(tipo, ahora);
+
+  toast({
+    entrada: '✅ Entrada registrada — ' + tsLocal,
+    salida: '⏹️ Salida registrada — ' + tsLocal,
+    inicio_pausa: '⏸️ Pausa iniciada — ' + tsLocal,
+    fin_pausa: '▶️ Pausa finalizada — ' + tsLocal
+  }[tipo], 'success');
+
+  loadMisFichajesHoy();
+  loadEstadoEquipo();
+}
+
+function actualizarEstadoBotones(tipo) {
+  const badge = document.getElementById('estado-fichaje-badge');
+  const btnE = document.getElementById('btn-entrada');
+  const btnS = document.getElementById('btn-salida');
+  const btnP = document.getElementById('btn-pausa');
+  const btnFP = document.getElementById('btn-fin-pausa');
+
+  if (tipo === 'entrada') {
+    estadoFichaje = 'dentro';
+    badge.className = 'fichar-estado dentro';
+    badge.textContent = '🟢 En jornada';
+    btnE.disabled = true; btnS.disabled = false;
+    btnP.disabled = false; btnFP.disabled = true;
+    iniciarTimerJornada();
+  } else if (tipo === 'salida') {
+    estadoFichaje = 'fuera';
+    badge.className = 'fichar-estado fuera';
+    badge.textContent = '🔴 Jornada finalizada';
+    btnE.disabled = false; btnS.disabled = true;
+    btnP.disabled = true; btnFP.disabled = true;
+    if (timerJornada) clearInterval(timerJornada);
+  } else if (tipo === 'inicio_pausa') {
+    estadoFichaje = 'pausa';
+    badge.className = 'fichar-estado pausa';
+    badge.textContent = '🟡 En pausa';
+    btnP.disabled = true; btnFP.disabled = false;
+  } else if (tipo === 'fin_pausa') {
+    estadoFichaje = 'dentro';
+    badge.className = 'fichar-estado dentro';
+    badge.textContent = '🟢 En jornada';
+    btnP.disabled = false; btnFP.disabled = true;
+    iniciarTimerJornada();
+  }
+}
+
+async function actualizarJornada(tipo, ahora) {
+  const hoy = ahora.toISOString().substring(0, 10);
+  const { data: jornada } = await db.from('jornadas')
+    .select('*').eq('usuario_id', currentUser.id).eq('fecha', hoy).single();
+
+  if (!jornada) {
+    if (tipo === 'entrada') {
+      await db.from('jornadas').insert({
+        usuario_id: currentUser.id,
+        fecha: hoy,
+        entrada: ahora.toISOString(),
+        estado: 'abierta'
+      });
+    }
+  } else {
+    const updates = {};
+    if (tipo === 'salida') {
+      updates.salida = ahora.toISOString();
+      updates.estado = 'cerrada';
+      if (jornada.entrada) {
+        const mins = Math.round((ahora - new Date(jornada.entrada)) / 60000);
+        updates.minutos_trabajados = mins;
+        updates.horas_ordinarias = Math.min(8, mins / 60);
+        updates.horas_extra = Math.max(0, mins / 60 - 8);
+      }
+    }
+    if (Object.keys(updates).length) {
+      await db.from('jornadas').update(updates).eq('id', jornada.id);
+    }
+  }
+}
+
+// ── CARGAR ESTADO INICIAL ──
+async function loadEstadoFichajeActual() {
+  if (!currentUser) return;
+  const hoy = new Date().toISOString().substring(0, 10);
+  const { data: fichajesHoy } = await db.from('fichajes')
+    .select('tipo,timestamp_utc')
+    .eq('usuario_id', currentUser.id)
+    .gte('timestamp_utc', hoy + 'T00:00:00Z')
+    .order('timestamp_utc', { ascending: true });
+
+  if (!fichajesHoy || !fichajesHoy.length) {
+    estadoFichaje = 'fuera';
+    return;
+  }
+
+  // Reconstruir estado desde los fichajes
+  let secs = 0;
+  let ultimaEntrada = null;
+  fichajesHoy.forEach(f => {
+    if (f.tipo === 'entrada' || f.tipo === 'fin_pausa') ultimaEntrada = new Date(f.timestamp_utc);
+    if (f.tipo === 'salida') { if (ultimaEntrada) secs += (new Date(f.timestamp_utc) - ultimaEntrada) / 1000; ultimaEntrada = null; }
+    if (f.tipo === 'inicio_pausa') { if (ultimaEntrada) secs += (new Date(f.timestamp_utc) - ultimaEntrada) / 1000; ultimaEntrada = null; }
+  });
+
+  const ultimo = fichajesHoy[fichajesHoy.length - 1];
+  segundosTrabajados = Math.round(secs);
+  if (ultimaEntrada) segundosTrabajados += Math.round((new Date() - ultimaEntrada) / 1000);
+  actualizarEstadoBotones(ultimo.tipo);
+}
+
+// ── MIS FICHAJES DE HOY ──
+async function loadMisFichajesHoy() {
+  const el = document.getElementById('mis-fichajes-hoy');
+  if (!el) return;
+  const hoy = new Date().toISOString().substring(0, 10);
+  const { data } = await db.from('fichajes')
+    .select('*')
+    .eq('usuario_id', currentUser.id)
+    .gte('timestamp_utc', hoy + 'T00:00:00Z')
+    .order('timestamp_utc', { ascending: true });
+
+  const fichajes = data || [];
+  if (!fichajes.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:12px">Sin fichajes hoy. Pulsa "Entrada" para empezar.</div>';
+    return;
+  }
+
+  const iconos = { entrada: '▶️', salida: '⏹️', inicio_pausa: '⏸️', fin_pausa: '▶️' };
+  const labels = { entrada: 'Entrada', salida: 'Salida', inicio_pausa: 'Inicio pausa', fin_pausa: 'Fin pausa' };
+
+  el.innerHTML = fichajes.map(f => `
+    <div class="registro-row ${f.tipo}">
+      <span class="registro-tipo-icon">${iconos[f.tipo]}</span>
+      <span class="registro-hora">${new Date(f.timestamp_utc).toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
+      <div style="flex:1">
+        <div style="font-weight:500;color:var(--text)">${labels[f.tipo]}</div>
+        <div class="registro-hash">Hash: ${f.hash_registro?.substring(0,24)}...</div>
+      </div>
+      <span style="font-size:10px;color:var(--text3)">${f.metodo}</span>
+    </div>`).join('');
+}
+
+// ── ESTADO DEL EQUIPO ──
+async function loadEstadoEquipo() {
+  const el = document.getElementById('estado-equipo');
+  if (!el) return;
+  const { data: perfs } = await db.from('perfiles').select('*');
+  if (!perfs || !perfs.length) { el.innerHTML = emptyHTML('👥','Sin usuarios','—'); return; }
+
+  const hoy = new Date().toISOString().substring(0, 10);
+  const { data: fichajesHoy } = await db.from('fichajes')
+    .select('usuario_id,tipo,timestamp_utc')
+    .gte('timestamp_utc', hoy + 'T00:00:00Z')
+    .order('timestamp_utc', { ascending: false });
+
+  const ultimoPorUsuario = {};
+  (fichajesHoy || []).forEach(f => {
+    if (!ultimoPorUsuario[f.usuario_id]) ultimoPorUsuario[f.usuario_id] = f;
+  });
+
+  const colores = ['#2563eb','#059669','#7c3aed','#ea580c','#db2777'];
+  el.innerHTML = perfs.map((p, i) => {
+    const uf = ultimoPorUsuario[p.id];
+    const estado = !uf ? 'Sin fichar' :
+      uf.tipo === 'entrada' || uf.tipo === 'fin_pausa' ? '🟢 En jornada' :
+      uf.tipo === 'inicio_pausa' ? '🟡 En pausa' :
+      uf.tipo === 'salida' ? '🔴 Salida' : '—';
+    const color = !uf ? '#94a3b8' :
+      (uf.tipo === 'entrada' || uf.tipo === 'fin_pausa') ? '#059669' :
+      uf.tipo === 'inicio_pausa' ? '#d97706' :
+      uf.tipo === 'salida' ? '#dc2626' : '#94a3b8';
+    const hora = uf ? new Date(uf.timestamp_utc).toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'}) : '—';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:32px;height:32px;border-radius:50%;background:${colores[i%colores.length]};display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex-shrink:0">${p.nombre.charAt(0).toUpperCase()}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500;color:var(--text)">${p.nombre}</div>
+        <div style="font-size:11px;color:var(--text3)">${p.rol}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;font-weight:500;color:${color}">${estado}</div>
+        <div style="font-size:10px;color:var(--text3)">${uf ? 'Último: ' + hora : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RESUMEN SEMANAL ──
+async function loadResumenSemana() {
+  const el = document.getElementById('resumen-semana');
+  if (!el) return;
+  const hoy = new Date();
+  const lunes = new Date(hoy);
+  lunes.setDate(hoy.getDate() - hoy.getDay() + 1 + (semanaOffset * 7));
+  lunes.setHours(0,0,0,0);
+  const domingo = new Date(lunes);
+  domingo.setDate(lunes.getDate() + 6);
+  domingo.setHours(23,59,59,999);
+
+  const lunStr = lunes.toLocaleDateString('es-ES',{day:'2-digit',month:'short'});
+  const domStr = domingo.toLocaleDateString('es-ES',{day:'2-digit',month:'short'});
+  document.getElementById('semana-label').textContent = `${lunStr} — ${domStr}`;
+
+  const { data: perfs } = await db.from('perfiles').select('*');
+  const { data: jornadas } = await db.from('jornadas')
+    .select('*,perfiles(nombre,rol)')
+    .gte('fecha', lunes.toISOString().substring(0,10))
+    .lte('fecha', domingo.toISOString().substring(0,10))
+    .order('fecha', { ascending: true });
+
+  if (!jornadas || !jornadas.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:10px">Sin jornadas registradas esta semana.</div>';
+    return;
+  }
+
+  // Agrupar por usuario
+  const porUsuario = {};
+  jornadas.forEach(j => {
+    const uid = j.usuario_id;
+    if (!porUsuario[uid]) porUsuario[uid] = { nombre: j.perfiles?.nombre || '—', jornadas: [], totalMins: 0, extraMins: 0 };
+    porUsuario[uid].jornadas.push(j);
+    porUsuario[uid].totalMins += j.minutos_efectivos || 0;
+    porUsuario[uid].extraMins += Math.round((j.horas_extra || 0) * 60);
+  });
+
+  const dias = ['L','M','X','J','V','S','D'];
+  el.innerHTML = Object.values(porUsuario).map(u => {
+    const horasTotal = (u.totalMins / 60).toFixed(1);
+    const horasExtra = (u.extraMins / 60).toFixed(1);
+    return `<div class="usuario-horario-card">
+      <div class="usuario-horario-header">
+        <div style="font-size:13px;font-weight:600;color:var(--text);flex:1">${u.nombre}</div>
+        <div class="usuario-horas">
+          <div class="hora-stat efectivo"><div class="hora-stat-val">${horasTotal}h</div><div class="hora-stat-label">Efectivas</div></div>
+          <div class="hora-stat extra"><div class="hora-stat-val">${horasExtra}h</div><div class="hora-stat-label">Extra</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:4px">
+        ${dias.map((d, idx) => {
+          const fecha = new Date(lunes);
+          fecha.setDate(lunes.getDate() + idx);
+          const fechaStr = fecha.toISOString().substring(0,10);
+          const jornada = u.jornadas.find(j => j.fecha === fechaStr);
+          const horas = jornada ? (jornada.minutos_efectivos / 60).toFixed(1) : null;
+          const esHoy = fechaStr === new Date().toISOString().substring(0,10);
+          const bg = !jornada ? 'var(--bg3)' : jornada.estado === 'abierta' ? '#dcfce7' : jornada.estado === 'cerrada' ? '#eff6ff' : '#fee2e2';
+          const border = esHoy ? '2px solid var(--accent)' : '1px solid var(--border)';
+          return `<div style="flex:1;text-align:center;padding:6px 4px;border-radius:6px;background:${bg};border:${border}">
+            <div style="font-size:9px;color:var(--text3);font-weight:600">${d}</div>
+            <div style="font-size:11px;font-weight:600;color:${horas?'var(--text)':'var(--text3)'};margin-top:2px">${horas ? horas+'h' : '—'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function cambiarSemana(dir) {
+  semanaOffset += dir;
+  loadResumenSemana();
+}
+
+// ── HISTÓRICO ──
+async function loadHistorico() {
+  const el = document.getElementById('historico-jornadas');
+  if (!el) return;
+  el.innerHTML = loadHTML();
+
+  const userId = document.getElementById('filtro-usuario-ch')?.value || '';
+  const mes = document.getElementById('filtro-mes-ch')?.value || new Date().toISOString().substring(0, 7);
+
+  let q = db.from('jornadas')
+    .select('*,perfiles(nombre,rol)')
+    .gte('fecha', mes + '-01')
+    .lte('fecha', mes + '-31')
+    .order('fecha', { ascending: false });
+  if (userId) q = q.eq('usuario_id', userId);
+
+  const { data } = await q;
+  const jornadas = data || [];
+
+  if (!jornadas.length) { el.innerHTML = emptyHTML('📅','Sin jornadas','No hay registros para este período'); return; }
+
+  el.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr>
+      <th>Trabajador</th><th>Fecha</th><th>Entrada</th><th>Salida</th>
+      <th>Tiempo efectivo</th><th>H. ordinarias</th><th>H. extra</th><th>Estado</th>
+    </tr></thead>
+    <tbody>${jornadas.map(j => `<tr>
+      <td style="font-weight:500;color:var(--text)">${j.perfiles?.nombre || '—'}</td>
+      <td style="font-size:12px">${fDate(j.fecha)}</td>
+      <td style="font-size:12px;font-family:monospace">${j.entrada ? fTime(j.entrada) : '—'}</td>
+      <td style="font-size:12px;font-family:monospace">${j.salida ? fTime(j.salida) : '—'}</td>
+      <td style="font-weight:500;color:var(--green)">${j.minutos_efectivos ? Math.floor(j.minutos_efectivos/60)+'h '+((j.minutos_efectivos||0)%60)+'m' : '—'}</td>
+      <td style="font-size:12px">${(j.horas_ordinarias||0).toFixed(1)}h</td>
+      <td style="font-size:12px;color:${(j.horas_extra||0)>0?'var(--red)':'var(--text3)'}">${(j.horas_extra||0).toFixed(1)}h</td>
+      <td><span class="estado-jornada ej-${j.estado}">${j.estado}</span></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ── EXPORTAR CSV (para Inspección de Trabajo) ──
+async function exportarCSV() {
+  const mes = document.getElementById('filtro-mes-ch')?.value || new Date().toISOString().substring(0, 7);
+  const { data } = await db.from('fichajes')
+    .select('*,perfiles(nombre,rol)')
+    .gte('timestamp_utc', mes + '-01T00:00:00Z')
+    .lte('timestamp_utc', mes + '-31T23:59:59Z')
+    .order('timestamp_utc', { ascending: true });
+
+  const rows = [
+    ['Trabajador','Rol','Tipo fichaje','Fecha y hora local','Timestamp UTC','Método','Hash registro','Hash anterior']
+  ];
+  (data || []).forEach(f => {
+    rows.push([
+      f.perfiles?.nombre || '', f.perfiles?.rol || '',
+      f.tipo, f.timestamp_local, f.timestamp_utc,
+      f.metodo, f.hash_registro, f.hash_anterior || ''
+    ]);
+  });
+
+  const csv = rows.map(r => r.map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `control-horario-${mes}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('CSV exportado correctamente', 'success');
+}
+
+// ── POBLAR FILTRO DE USUARIOS ──
+async function poblarFiltroUsuarios() {
+  const { data } = await db.from('perfiles').select('id,nombre').order('nombre');
+  const sel = document.getElementById('filtro-usuario-ch');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Todos los usuarios</option>' +
+    (data || []).map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
+}
+
+// ── OVERRIDE showPage ──
+const _showPageCH = window.showPage;
+window.showPage = function(id) {
+  _showPageCH(id);
+  if (id === 'control-horario') {
+    iniciarReloj();
+    loadEstadoFichajeActual().then(() => {
+      loadMisFichajesHoy();
+      loadEstadoEquipo();
+      loadResumenSemana();
+      poblarFiltroUsuarios();
+      // Poner mes actual en el filtro
+      const mesInput = document.getElementById('filtro-mes-ch');
+      if (mesInput && !mesInput.value) mesInput.value = new Date().toISOString().substring(0, 7);
+      loadHistorico();
+    });
+  }
+};
+
+function fTime(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
 
 </body>
 </html>
