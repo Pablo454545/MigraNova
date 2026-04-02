@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MigraNova — Superadmin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--surface3:#30363d;
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --accent:#58a6ff;--accent2:#1f6feb;--accent-light:rgba(88,166,255,.1);
+  --green:#3fb950;--green-light:rgba(63,185,80,.15);
+  --amber:#d29922;--amber-light:rgba(210,153,34,.15);
+  --red:#f85149;--red-light:rgba(248,81,73,.15);
+  --purple:#bc8cff;--purple-light:rgba(188,140,255,.15);
+  --border:rgba(240,246,252,.1);--border2:#30363d;
+  --radius:8px;--shadow:0 8px 24px rgba(0,0,0,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:14px}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0}
+.sidebar-logo{padding:20px 18px;border-bottom:1px solid var(--border)}
+.logo-text{font-size:16px;font-weight:700;color:var(--text)}
+.logo-badge{display:inline-block;background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;margin-left:6px;letter-spacing:.06em}
+.sidebar-section{padding:16px 10px 8px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:.15s;margin:1px 0;text-decoration:none}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-light);color:var(--accent)}
+.nav-item .icon{width:18px;text-align:center;font-size:15px}
+.sidebar-footer{margin-top:auto;padding:16px;border-top:1px solid var(--border);font-size:12px;color:var(--text3)}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.avatar{width:32px;height:32px;background:var(--accent2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+.content{padding:28px;flex:1}
+
+/* CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px}
+.kpi{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:20px}
+.kpi-value{font-size:32px;font-weight:700;margin-bottom:4px}
+.kpi-label{font-size:11px;color:var(--text3);font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+.kpi-change{font-size:11px;margin-top:8px;display:flex;align-items:center;gap:4px}
+.kpi-change.up{color:var(--green)}
+.kpi-change.down{color:var(--red)}
+
+/* TABLE */
+.card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden;margin-bottom:20px}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-title{font-size:14px;font-weight:600}
+.card-actions{display:flex;gap:8px;align-items:center}
+.search-input{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 12px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;width:220px;outline:none}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--text3)}
+.filter-select{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Sora',sans-serif;font-size:12px;outline:none;cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:13px 16px;border-bottom:1px solid rgba(240,246,252,.05);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.tenant-name{font-weight:600;color:var(--text)}
+.tenant-email{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.badge-trial{background:var(--amber-light);color:var(--amber)}
+.badge-activo{background:var(--green-light);color:var(--green)}
+.badge-suspendido{background:var(--red-light);color:var(--red)}
+.badge-cancelado{background:var(--surface3);color:var(--text3)}
+.badge-plan{background:var(--accent-light);color:var(--accent)}
+.badge-enterprise{background:var(--purple-light);color:var(--purple)}
+
+/* BTNS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+.btn-primary{background:var(--accent2);color:#fff}
+.btn-primary:hover{background:#388bfd}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:5px}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-red{background:var(--red-light);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+.btn-red:hover{background:rgba(248,81,73,.25)}
+.btn-green{background:var(--green-light);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+.btn-green:hover{background:rgba(63,185,80,.25)}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:28px;max-width:520px;width:100%;box-shadow:var(--shadow)}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;letter-spacing:.04em}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:9px 12px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;outline:none;transition:.15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* LOGIN */
+.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:500}
+.login-card{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:36px;max-width:380px;width:100%;text-align:center}
+.login-card h2{font-size:20px;font-weight:700;margin-bottom:6px}
+.login-card p{color:var(--text3);font-size:13px;margin-bottom:24px}
+.login-badge{display:inline-block;background:var(--red-light);color:var(--red);font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;margin-bottom:16px;letter-spacing:.06em}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.empty p{font-size:13px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:12px 18px;border-radius:8px;font-size:13px;z-index:1000;display:none;box-shadow:var(--shadow)}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:500}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-badge">⚡ SUPERADMIN</div>
+    <h2>MigraNova Control</h2>
+    <p>Acceso restringido — solo administradores del sistema</p>
+    <div class="form-group" style="text-align:left">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="admin@migranova.es">
+    </div>
+    <div class="form-group" style="text-align:left">
+      <label>Contraseña</label>
+      <input type="password" id="login-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <p id="login-error" style="color:var(--red);font-size:12px;margin-bottom:12px;display:none"></p>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="doLogin()">Entrar →</button>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-text">MigraNova <span class="logo-badge">SA</span></span>
+  </div>
+  <div class="sidebar-section">Panel</div>
+  <a class="nav-item active" onclick="showPage('dashboard')" href="#">
+    <span class="icon">📊</span> Dashboard
+  </a>
+  <a class="nav-item" onclick="showPage('tenants')" href="#">
+    <span class="icon">🏢</span> Despachos
+  </a>
+  <a class="nav-item" onclick="showPage('planes-page')" href="#">
+    <span class="icon">💳</span> Planes
+  </a>
+  <a class="nav-item" onclick="showPage('pagos-page')" href="#">
+    <span class="icon">💰</span> Ingresos
+  </a>
+  <div class="sidebar-section">Sistema</div>
+  <a class="nav-item" onclick="showPage('actividad')" href="#">
+    <span class="icon">📋</span> Actividad
+  </a>
+  <div class="sidebar-footer">
+    <div id="sa-email" style="margin-bottom:6px;font-weight:500;color:var(--text2)"></div>
+    <a href="#" onclick="doLogout()" style="color:var(--red);text-decoration:none;font-size:11px">Cerrar sesión</a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title" id="page-title">Dashboard</span>
+    <div class="topbar-right">
+      <span id="current-date" style="font-size:12px;color:var(--text3)"></span>
+      <div class="avatar" id="sa-avatar">SA</div>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard">
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi"><div class="kpi-value" style="color:var(--accent)">—</div><div class="kpi-label">Despachos totales</div></div>
+        <div class="kpi"><div class="kpi-value" style="color:var(--green)">—</div><div class="kpi-label">Activos / Trial</div></div>
+        <div class="kpi"><div class="kpi-value" style="color:var(--amber)">—</div><div class="kpi-label">Suspendidos</div></div>
+        <div class="kpi"><div class="kpi-value" style="color:var(--purple)">—</div><div class="kpi-label">MRR (€/mes)</div></div>
+        <div class="kpi"><div class="kpi-value" style="color:var(--text)">—</div><div class="kpi-label">Expedientes totales</div></div>
+        <div class="kpi"><div class="kpi-value" style="color:var(--text)">—</div><div class="kpi-label">Clientes totales</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Despachos recientes</span>
+          <button class="btn btn-primary btn-sm" onclick="showPage('tenants')">Ver todos →</button>
+        </div>
+        <table>
+          <thead><tr><th>Despacho</th><th>Plan</th><th>Estado</th><th>Expedientes</th><th>Registrado</th></tr></thead>
+          <tbody id="dashboard-tenants-table"><tr><td colspan="5" class="empty"><div class="empty-icon">⏳</div><p>Cargando...</p></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TENANTS -->
+    <div id="page-tenants" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🏢 Todos los despachos</span>
+          <div class="card-actions">
+            <input class="search-input" id="search-tenants" placeholder="Buscar despacho..." oninput="filterTenants()">
+            <select class="filter-select" id="filter-estado" onchange="filterTenants()">
+              <option value="">Todos los estados</option>
+              <option value="trial">Trial</option>
+              <option value="activo">Activo</option>
+              <option value="suspendido">Suspendido</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+            <select class="filter-select" id="filter-plan" onchange="filterTenants()">
+              <option value="">Todos los planes</option>
+              <option value="trial">Trial</option>
+              <option value="basic">Basic</option>
+              <option value="pro">Pro</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="openModal('nuevo-tenant')">+ Nuevo</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Despacho</th><th>Plan</th><th>Estado</th><th>Trial hasta</th><th>Ciudad</th><th>Creado</th><th>Acciones</th></tr></thead>
+          <tbody id="tenants-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PLANES -->
+    <div id="page-planes-page" style="display:none">
+      <div class="card">
+        <div class="card-header"><span class="card-title">💳 Planes disponibles</span></div>
+        <table>
+          <thead><tr><th>Plan</th><th>Precio/mes</th><th>Max expedientes</th><th>Max usuarios</th><th>Max clientes</th><th>Activo</th></tr></thead>
+          <tbody id="planes-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INGRESOS -->
+    <div id="page-pagos-page" style="display:none">
+      <div class="kpi-grid" id="pagos-kpis" style="margin-bottom:24px"></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">💰 Historial de pagos</span></div>
+        <table>
+          <thead><tr><th>Despacho</th><th>Plan</th><th>Importe</th><th>Estado</th><th>Periodo</th><th>Fecha</th></tr></thead>
+          <tbody id="pagos-table"><tr><td colspan="6" class="empty"><div class="empty-icon">💰</div><p>Sin pagos registrados aún</p></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ACTIVIDAD -->
+    <div id="page-actividad" style="display:none">
+      <div class="card">
+        <div class="card-header"><span class="card-title">📋 Actividad reciente</span></div>
+        <div id="actividad-list" style="padding:20px;color:var(--text3);font-size:13px;text-align:center">Cargando actividad...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALES -->
+
+<!-- Detalle / edición tenant -->
+<div class="overlay" id="overlay-tenant-detail">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-title" id="detail-modal-title">Despacho</div>
+    <div id="tenant-detail-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('tenant-detail')">Cerrar</button>
+      <button class="btn btn-primary" onclick="guardarTenant()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Nuevo tenant manual -->
+<div class="overlay" id="overlay-nuevo-tenant">
+  <div class="modal">
+    <div class="modal-title">+ Nuevo despacho</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nombre del despacho *</label><input id="nt-nombre" placeholder="Extranjería García"></div>
+      <div class="form-group"><label>Ciudad</label><input id="nt-ciudad" placeholder="Madrid"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Email admin *</label><input type="email" id="nt-email" placeholder="admin@despacho.es"></div>
+      <div class="form-group"><label>Teléfono</label><input id="nt-telefono" placeholder="600 000 000"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Plan</label>
+        <select id="nt-plan"><option value="trial">Trial</option><option value="basic">Basic</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option></select>
+      </div>
+      <div class="form-group"><label>Estado</label>
+        <select id="nt-estado"><option value="trial">Trial</option><option value="activo">Activo</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label>Contraseña temporal admin *</label><input type="password" id="nt-pass" placeholder="Mínimo 8 caracteres"></div>
+    <p id="nt-error" style="color:var(--red);font-size:12px;display:none;margin-top:4px"></p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('nuevo-tenant')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearTenantAdmin()">Crear despacho</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmar suspender/activar -->
+<div class="overlay" id="overlay-confirm">
+  <div class="modal" style="max-width:380px;text-align:center">
+    <div style="font-size:36px;margin-bottom:16px" id="confirm-icon">⚠️</div>
+    <h3 id="confirm-title" style="margin-bottom:8px"></h3>
+    <p id="confirm-desc" style="color:var(--text2);font-size:13px;margin-bottom:24px"></p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn btn-ghost" onclick="closeModal('confirm')">Cancelar</button>
+      <button class="btn" id="confirm-btn" onclick="executeConfirm()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+// ── CONFIG ────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'TU_SUPABASE_URL';
+const SUPABASE_KEY = 'TU_SUPABASE_ANON_KEY';
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentPage = 'dashboard';
+let allTenants = [];
+let confirmAction = null;
+let editingTenantId = null;
+
+window.db = db;
+
+// ── AUTH ─────────────────────────────────────────────────────────────
+async function checkAuth(){
+  const {data:{session}} = await db.auth.getSession();
+  if(!session){return;} // stay on login screen
+  const {data:perfil} = await db.from('perfiles').select('*').eq('id',session.user.id).single();
+  if(!perfil || perfil.rol !== 'superadmin'){
+    await db.auth.signOut();
+    showLoginErr('No tienes permisos de superadmin.');
+    return;
+  }
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('sa-email').textContent = perfil.email || session.user.email;
+  document.getElementById('sa-avatar').textContent = (perfil.nombre||'SA').substring(0,2).toUpperCase();
+  document.getElementById('current-date').textContent = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+  loadDashboard();
+}
+
+window.doLogin = async function(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  document.getElementById('login-error').style.display='none';
+  const {error} = await db.auth.signInWithPassword({email, password:pass});
+  if(error) return showLoginErr(error.message);
+  checkAuth();
+};
+
+function showLoginErr(msg){
+  const el=document.getElementById('login-error');
+  el.textContent=msg; el.style.display='block';
+}
+
+window.doLogout = async function(){
+  await db.auth.signOut();
+  location.reload();
+};
+
+// ── NAVIGATION ───────────────────────────────────────────────────────
+window.showPage = function(id){
+  document.querySelectorAll('[id^="page-"]').forEach(el=>el.style.display='none');
+  const page = document.getElementById('page-'+id);
+  if(page) page.style.display='block';
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const navEl = document.querySelector(`.nav-item[onclick*="${id}"]`);
+  if(navEl) navEl.classList.add('active');
+  const titles = {dashboard:'Dashboard',tenants:'🏢 Despachos','planes-page':'💳 Planes','pagos-page':'💰 Ingresos',actividad:'📋 Actividad'};
+  document.getElementById('page-title').textContent = titles[id] || id;
+  currentPage = id;
+  if(id==='tenants') loadTenants();
+  if(id==='planes-page') loadPlanes();
+  if(id==='pagos-page') loadPagos();
+  if(id==='actividad') loadActividad();
+};
+
+// ── DASHBOARD ────────────────────────────────────────────────────────
+async function loadDashboard(){
+  const {data} = await db.rpc('stats_superadmin');
+  if(data){
+    const kpis = document.querySelectorAll('.kpi .kpi-value');
+    kpis[0].textContent = data.total_tenants;
+    kpis[1].textContent = data.activos;
+    kpis[2].textContent = data.suspendidos;
+    kpis[3].textContent = (data.mrr||0).toLocaleString('es-ES') + '€';
+    kpis[4].textContent = data.total_expedientes;
+    kpis[5].textContent = data.total_clientes;
+  }
+  const {data:tenants} = await db.from('tenants').select('*,planes(nombre)').order('created_at',{ascending:false}).limit(8);
+  const tb = document.getElementById('dashboard-tenants-table');
+  if(!tenants?.length){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-icon">🏢</div><p>Sin despachos aún</p></div></td></tr>';return;}
+  tb.innerHTML = tenants.map(t=>`
+    <tr>
+      <td><div class="tenant-name">${t.nombre}</div><div class="tenant-email">${t.email_admin}</div></td>
+      <td>${planBadge(t.plan_id)}</td>
+      <td>${estadoBadge(t.estado)}</td>
+      <td style="color:var(--text2)">—</td>
+      <td style="color:var(--text3)">${fDate(t.created_at)}</td>
+    </tr>`).join('');
+}
+
+// ── TENANTS ──────────────────────────────────────────────────────────
+async function loadTenants(){
+  const {data} = await db.from('tenants').select('*,planes(nombre)').order('created_at',{ascending:false});
+  allTenants = data || [];
+  renderTenants(allTenants);
+}
+
+function renderTenants(list){
+  const tb = document.getElementById('tenants-table');
+  if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">🏢</div><p>Sin resultados</p></div></td></tr>';return;}
+  tb.innerHTML = list.map(t=>`
+    <tr>
+      <td><div class="tenant-name">${t.nombre}</div><div class="tenant-email">${t.email_admin}</div></td>
+      <td>${planBadge(t.plan_id)}</td>
+      <td>${estadoBadge(t.estado)}</td>
+      <td style="color:var(--text3);font-size:12px">${t.trial_hasta ? fDate(t.trial_hasta) : '—'}</td>
+      <td style="color:var(--text2)">${t.ciudad||'—'}</td>
+      <td style="color:var(--text3);font-size:12px">${fDate(t.created_at)}</td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="editTenant('${t.id}')">✏️ Editar</button>
+          ${t.estado==='suspendido'
+            ? `<button class="btn btn-green btn-sm" onclick="confirmAction('activar','${t.id}','${t.nombre}')">✅ Activar</button>`
+            : `<button class="btn btn-red btn-sm" onclick="confirmAction('suspender','${t.id}','${t.nombre}')">⛔ Suspender</button>`
+          }
+          <button class="btn btn-ghost btn-sm" onclick="cambiarPlan('${t.id}','${t.plan_id}','${t.nombre}')">💳 Plan</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+window.filterTenants = function(){
+  const q = document.getElementById('search-tenants').value.toLowerCase();
+  const est = document.getElementById('filter-estado').value;
+  const plan = document.getElementById('filter-plan').value;
+  const filtered = allTenants.filter(t=>{
+    const matchQ = !q || t.nombre.toLowerCase().includes(q) || t.email_admin.toLowerCase().includes(q) || (t.ciudad||'').toLowerCase().includes(q);
+    const matchEst = !est || t.estado===est;
+    const matchPlan = !plan || t.plan_id===plan;
+    return matchQ && matchEst && matchPlan;
+  });
+  renderTenants(filtered);
+};
+
+window.editTenant = async function(id){
+  const t = allTenants.find(x=>x.id===id);
+  if(!t) return;
+  editingTenantId = id;
+  document.getElementById('detail-modal-title').textContent = `✏️ ${t.nombre}`;
+  document.getElementById('tenant-detail-content').innerHTML = `
+    <div class="form-row">
+      <div class="form-group"><label>Nombre</label><input id="ed-nombre" value="${t.nombre||''}"></div>
+      <div class="form-group"><label>Ciudad</label><input id="ed-ciudad" value="${t.ciudad||''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Email admin</label><input id="ed-email" value="${t.email_admin||''}"></div>
+      <div class="form-group"><label>Teléfono</label><input id="ed-telefono" value="${t.telefono||''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Plan</label>
+        <select id="ed-plan">
+          ${['trial','basic','pro','enterprise'].map(p=>`<option value="${p}" ${t.plan_id===p?'selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Estado</label>
+        <select id="ed-estado">
+          ${['trial','activo','suspendido','cancelado'].map(e=>`<option value="${e}" ${t.estado===e?'selected':''}>${e.charAt(0).toUpperCase()+e.slice(1)}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>CIF</label><input id="ed-cif" value="${t.cif||''}"></div>
+      <div class="form-group"><label>Trial hasta</label><input type="date" id="ed-trial" value="${t.trial_hasta?t.trial_hasta.substring(0,10):''}"></div>
+    </div>
+    <div class="form-group"><label>Dirección</label><input id="ed-dir" value="${t.direccion||''}"></div>
+    <p style="font-size:11px;color:var(--text3);margin-top:8px">ID: ${t.id} · Registrado: ${fDate(t.created_at)}</p>
+  `;
+  openModal('tenant-detail');
+};
+
+window.guardarTenant = async function(){
+  if(!editingTenantId) return;
+  const updates = {
+    nombre: document.getElementById('ed-nombre').value.trim(),
+    ciudad: document.getElementById('ed-ciudad').value.trim(),
+    email_admin: document.getElementById('ed-email').value.trim(),
+    telefono: document.getElementById('ed-telefono').value.trim(),
+    plan_id: document.getElementById('ed-plan').value,
+    estado: document.getElementById('ed-estado').value,
+    cif: document.getElementById('ed-cif').value.trim(),
+    direccion: document.getElementById('ed-dir').value.trim(),
+    trial_hasta: document.getElementById('ed-trial').value || null,
+    updated_at: new Date().toISOString()
+  };
+  const {error} = await db.from('tenants').update(updates).eq('id',editingTenantId);
+  if(error) return toast('Error: '+error.message,'red');
+  toast('Despacho actualizado ✅');
+  closeModal('tenant-detail');
+  loadTenants();
+};
+
+window.confirmAction = function(action, id, nombre){
+  confirmAction = {action, id};
+  const icon = action==='suspender'?'⛔':'✅';
+  const title = action==='suspender'?`Suspender ${nombre}`:`Activar ${nombre}`;
+  const desc = action==='suspender'
+    ? 'El despacho perderá el acceso a la aplicación inmediatamente.'
+    : 'El despacho recuperará el acceso a la aplicación.';
+  document.getElementById('confirm-icon').textContent = icon;
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-desc').textContent = desc;
+  const btn = document.getElementById('confirm-btn');
+  btn.textContent = action==='suspender'?'Sí, suspender':'Sí, activar';
+  btn.className = 'btn ' + (action==='suspender'?'btn-red':'btn-green');
+  openModal('confirm');
+};
+
+window.executeConfirm = async function(){
+  if(!confirmAction) return;
+  const {action, id} = confirmAction;
+  const nuevoEstado = action==='suspender'?'suspendido':'activo';
+  const {error} = await db.from('tenants').update({estado:nuevoEstado,updated_at:new Date().toISOString()}).eq('id',id);
+  if(error) return toast('Error: '+error.message,'red');
+  toast(`Despacho ${nuevoEstado} correctamente ✅`);
+  closeModal('confirm');
+  loadTenants();
+  if(currentPage==='dashboard') loadDashboard();
+};
+
+window.cambiarPlan = function(id, planActual, nombre){
+  editingTenantId = id;
+  document.getElementById('detail-modal-title').textContent = `💳 Plan — ${nombre}`;
+  document.getElementById('tenant-detail-content').innerHTML = `
+    <div class="form-group">
+      <label>Nuevo plan</label>
+      <select id="ed-plan" style="width:100%">
+        ${['trial','basic','pro','enterprise'].map(p=>`<option value="${p}" ${planActual===p?'selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Nuevo estado</label>
+      <select id="ed-estado" style="width:100%">
+        ${['trial','activo','suspendido'].map(e=>`<option value="${e}">${e.charAt(0).toUpperCase()+e.slice(1)}</option>`).join('')}
+      </select>
+    </div>`;
+  document.querySelector('#overlay-tenant-detail .modal-footer .btn-primary').onclick = async ()=>{
+    const plan = document.getElementById('ed-plan').value;
+    const estado = document.getElementById('ed-estado').value;
+    const {error} = await db.from('tenants').update({plan_id:plan,estado,updated_at:new Date().toISOString()}).eq('id',id);
+    if(error) return toast('Error','red');
+    toast('Plan actualizado ✅');
+    closeModal('tenant-detail');
+    loadTenants();
+  };
+  openModal('tenant-detail');
+};
+
+// ── CREAR TENANT MANUAL ───────────────────────────────────────────────
+window.crearTenantAdmin = async function(){
+  const nombre = document.getElementById('nt-nombre').value.trim();
+  const email  = document.getElementById('nt-email').value.trim();
+  const ciudad = document.getElementById('nt-ciudad').value.trim();
+  const tel    = document.getElementById('nt-telefono').value.trim();
+  const plan   = document.getElementById('nt-plan').value;
+  const estado = document.getElementById('nt-estado').value;
+  const pass   = document.getElementById('nt-pass').value;
+  const errEl  = document.getElementById('nt-error');
+  errEl.style.display='none';
+  if(!nombre||!email||!pass){errEl.textContent='Nombre, email y contraseña son obligatorios.';errEl.style.display='block';return;}
+  if(pass.length<8){errEl.textContent='Contraseña mínimo 8 caracteres.';errEl.style.display='block';return;}
+
+  // Crear usuario en auth
+  const {data:authData,error:authErr} = await db.auth.admin?.createUser?.({email,password:pass,email_confirm:true})
+    || await db.auth.signUp({email,password:pass}); // fallback sin admin API
+  if(authErr){errEl.textContent=authErr.message;errEl.style.display='block';return;}
+
+  const userId = authData.user?.id;
+  if(userId){
+    await db.rpc('registrar_despacho',{p_nombre:nombre,p_email:email,p_telefono:tel,p_ciudad:ciudad,p_user_id:userId,p_nombre_gestor:nombre});
+    if(plan!=='trial'||estado!=='trial'){
+      const {data:t} = await db.from('tenants').select('id').eq('email_admin',email).single();
+      if(t) await db.from('tenants').update({plan_id:plan,estado}).eq('id',t.id);
+    }
+  }
+  toast('Despacho creado ✅');
+  closeModal('nuevo-tenant');
+  loadTenants();
+  loadDashboard();
+};
+
+// ── PLANES ───────────────────────────────────────────────────────────
+async function loadPlanes(){
+  const {data} = await db.from('planes').select('*').order('precio_mensual');
+  const tb = document.getElementById('planes-table');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="6" class="empty"><p>Sin planes</p></td></tr>';return;}
+  tb.innerHTML = data.map(p=>`
+    <tr>
+      <td>${planBadge(p.id)} <span style="margin-left:8px;font-weight:600">${p.nombre}</span></td>
+      <td style="font-weight:600;color:var(--accent)">${p.precio_mensual}€</td>
+      <td style="color:var(--text2)">${p.max_expedientes||'∞'}</td>
+      <td style="color:var(--text2)">${p.max_usuarios||'∞'}</td>
+      <td style="color:var(--text2)">${p.max_clientes||'∞'}</td>
+      <td>${p.activo?'<span style="color:var(--green)">✓ Activo</span>':'<span style="color:var(--red)">✗ Inactivo</span>'}</td>
+    </tr>`).join('');
+}
+
+// ── PAGOS ────────────────────────────────────────────────────────────
+async function loadPagos(){
+  const {data} = await db.from('pagos').select('*,tenants(nombre),planes(nombre)').order('created_at',{ascending:false}).limit(50);
+  const tb = document.getElementById('pagos-table');
+  if(!data?.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">💰</div><p>Sin pagos registrados</p></div></td></tr>';return;}
+  const total = data.filter(p=>p.estado==='completado').reduce((s,p)=>s+parseFloat(p.importe),0);
+  document.getElementById('pagos-kpis').innerHTML = `
+    <div class="kpi"><div class="kpi-value" style="color:var(--green)">${total.toLocaleString('es-ES')}€</div><div class="kpi-label">Total cobrado</div></div>
+    <div class="kpi"><div class="kpi-value" style="color:var(--text)">${data.length}</div><div class="kpi-label">Transacciones</div></div>`;
+  tb.innerHTML = data.map(p=>`
+    <tr>
+      <td style="font-weight:500">${p.tenants?.nombre||'—'}</td>
+      <td>${planBadge(p.plan_id)}</td>
+      <td style="font-weight:600;color:var(--green)">${parseFloat(p.importe).toLocaleString('es-ES')}€</td>
+      <td>${p.estado==='completado'?'<span style="color:var(--green)">✓ Completado</span>':p.estado==='fallido'?'<span style="color:var(--red)">✗ Fallido</span>':'<span style="color:var(--amber)">⏳ Pendiente</span>'}</td>
+      <td style="font-size:12px;color:var(--text3)">${p.periodo_inicio?fDate(p.periodo_inicio)+' – '+fDate(p.periodo_fin):'—'}</td>
+      <td style="font-size:12px;color:var(--text3)">${fDate(p.created_at)}</td>
+    </tr>`).join('');
+}
+
+// ── ACTIVIDAD ────────────────────────────────────────────────────────
+async function loadActividad(){
+  const {data:tenants} = await db.from('tenants').select('id,nombre,estado,plan_id,created_at').order('created_at',{ascending:false}).limit(20);
+  const list = document.getElementById('actividad-list');
+  if(!tenants?.length){list.textContent='Sin actividad';return;}
+  list.innerHTML = tenants.map(t=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)">
+      <span style="font-size:20px">🏢</span>
+      <div style="flex:1">
+        <div style="font-weight:600;color:var(--text)">${t.nombre}</div>
+        <div style="font-size:11px;color:var(--text3)">Nuevo despacho registrado · ${planBadge(t.plan_id)}</div>
+      </div>
+      <span style="font-size:11px;color:var(--text3)">${fDate(t.created_at)}</span>
+    </div>`).join('');
+}
+
+// ── MODALES ──────────────────────────────────────────────────────────
+window.openModal = function(id){document.getElementById('overlay-'+id).classList.add('open');}
+window.closeModal = function(id){document.getElementById('overlay-'+id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o){const id=o.id.replace('overlay-','');closeModal(id);}}));
+
+// ── HELPERS ──────────────────────────────────────────────────────────
+function planBadge(plan){
+  const cls = plan==='enterprise'?'badge-enterprise':'badge-plan';
+  return `<span class="badge ${cls}">${plan||'—'}</span>`;
+}
+function estadoBadge(estado){
+  const cls = {trial:'badge-trial',activo:'badge-activo',suspendido:'badge-suspendido',cancelado:'badge-cancelado'}[estado]||'badge-cancelado';
+  return `<span class="badge ${cls}">${estado||'—'}</span>`;
+}
+function fDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});}
+function toast(msg,type='green'){
+  const t=document.getElementById('toast');
+  t.style.borderColor = type==='red'?'rgba(248,81,73,.4)':'rgba(63,185,80,.4)';
+  t.style.color = type==='red'?'var(--red)':'var(--green)';
+  t.textContent=msg; t.style.display='block';
+  setTimeout(()=>t.style.display='none',3000);
+}
+window.toast = toast;
+
+// ── INIT ─────────────────────────────────────────────────────────────
+checkAuth();
+</script>
+</body>
+</html>

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MigraNova — Mi Despacho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f8f7f4;--surface:#ffffff;--surface2:#f3f2ee;--surface3:#ebe9e2;
+  --text:#1a1a1a;--text2:#4b5563;--text3:#9ca3af;
+  --accent:#1a4fd8;--accent2:#0f3ba8;--accent-light:#eff3ff;
+  --green:#059669;--green-light:#d1fae5;
+  --amber:#d97706;--amber-light:#fef3c7;
+  --red:#dc2626;--red-light:#fee2e2;
+  --purple:#7c3aed;--purple-light:#ede9fe;
+  --border:#e5e2d9;--border2:#d1cec4;
+  --radius:10px;--shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.07);
+  --sidebar-w:220px;
+  --tenant-color:#1a4fd8;  /* overridden per tenant */
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* ── LOGIN ─────────────────────────────────────────────────── */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0d1117 0%,#1a2744 100%);display:flex;align-items:center;justify-content:center;z-index:500;flex-direction:column;gap:24px}
+.login-card{background:#fff;border-radius:16px;padding:36px;max-width:380px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-logo h1{font-size:24px;font-weight:700;color:#0d1117}
+.login-logo p{font-size:13px;color:#6b7280;margin-top:4px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px}
+.form-group input{width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-family:'Sora',sans-serif;font-size:14px;outline:none;transition:.2s}
+.form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,79,216,.1)}
+.plan-bar{display:flex;align-items:center;justify-content:space-between;background:var(--amber-light);border:1px solid rgba(217,119,6,.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px}
+.plan-bar.trial{background:var(--amber-light);color:var(--amber)}
+.plan-bar.activo{background:var(--green-light);color:var(--green);display:none}
+.plan-bar a{color:inherit;font-weight:700}
+.login-footer{text-align:center;margin-top:16px}
+.login-footer a{font-size:12px;color:var(--accent);text-decoration:none}
+#login-error{color:var(--red);font-size:12px;margin-bottom:10px;display:none}
+
+/* ── LAYOUT ────────────────────────────────────────────────── */
+#app{display:none;min-height:100vh}
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;overflow-y:auto;z-index:10}
+.sidebar-header{padding:16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sidebar-brand{font-size:15px;font-weight:700;color:var(--text)}
+.sidebar-despacho{font-size:11px;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sidebar-plan{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;margin-top:6px;text-transform:uppercase;letter-spacing:.06em}
+.sidebar-plan.trial{background:var(--amber-light);color:var(--amber)}
+.sidebar-plan.basic,.sidebar-plan.pro{background:var(--accent-light);color:var(--accent)}
+.sidebar-plan.enterprise{background:var(--purple-light);color:var(--purple)}
+.sidebar-nav{padding:10px 8px;flex:1}
+.sidebar-section{padding:10px 8px 4px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:.15s;margin:1px 0;text-decoration:none}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-light);color:var(--accent)}
+.nav-item .icon{width:18px;text-align:center;font-size:15px}
+.badge-count{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.sidebar-footer{padding:12px;border-top:1px solid var(--border);font-size:12px}
+.user-info{display:flex;align-items:center;gap:9px}
+.user-avatar{width:30px;height:30px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-role{font-size:10px;color:var(--text3)}
+
+/* ── MAIN ──────────────────────────────────────────────────── */
+.main{margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column}
+.topbar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:5}
+.topbar-title{font-size:15px;font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.content{padding:24px;flex:1}
+
+/* ── COMPONENTS ────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s;text-decoration:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border2)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface2)}
+.btn-sm{padding:5px 11px;font-size:12px;border-radius:6px}
+.btn-red{background:var(--red-light);color:var(--red);border:1px solid rgba(220,38,38,.2)}
+.btn-green{background:var(--green-light);color:var(--green);border:1px solid rgba(5,150,105,.2)}
+.btn-icon{padding:7px;border-radius:7px;background:transparent;border:1px solid var(--border);color:var(--text2);cursor:pointer;font-size:15px;transition:.15s}
+.btn-icon:hover{background:var(--surface2)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.kpi-val{font-size:28px;font-weight:700;margin-bottom:2px}
+.kpi-lbl{font-size:11px;color:var(--text3);font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card-title{font-size:14px;font-weight:600}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid rgba(0,0,0,.04);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.badge-documentacion{background:#f3f4f6;color:#374151}
+.badge-presentado{background:var(--amber-light);color:var(--amber)}
+.badge-en_tramite{background:var(--accent-light);color:var(--accent)}
+.badge-urgente{background:var(--red-light);color:var(--red)}
+.badge-resuelto{background:var(--green-light);color:var(--green)}
+
+.search-input{background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 12px;font-family:'Sora',sans-serif;font-size:13px;color:var(--text);outline:none;width:220px}
+.search-input:focus{border-color:var(--accent)}
+.filter-select{background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;font-family:'Sora',sans-serif;font-size:12px;color:var(--text);outline:none;cursor:pointer}
+
+/* Overlay + Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:14px;padding:28px;max-width:520px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,.15);max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;letter-spacing:.03em}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'Sora',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:.15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(26,79,216,.08)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+.empty{text-align:center;padding:48px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:12px 18px;border-radius:9px;font-size:13px;z-index:999;display:none;box-shadow:var(--shadow)}
+
+/* ALERTA PLAN */
+.plan-alert{background:var(--amber-light);border:1px solid rgba(217,119,6,.25);border-radius:9px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--amber)}
+.plan-alert a{color:var(--amber);font-weight:700}
+.plan-alert.hidden{display:none}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>🏛️ MigraNova</h1>
+      <p>Portal del despacho</p>
+    </div>
+    <div id="login-error"></div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="tu@despacho.es" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="doLogin()">Entrar →</button>
+    <div class="login-footer">
+      <a href="migranova-landing.html">¿Aún no tienes cuenta? Regístrate gratis →</a>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">🏛️ MigraNova</div>
+      <div class="sidebar-despacho" id="sb-despacho">Cargando...</div>
+      <div class="sidebar-plan" id="sb-plan">trial</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section">Principal</div>
+      <a class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span> Dashboard</a>
+      <a class="nav-item" onclick="showPage('expedientes')"><span class="icon">📁</span> Expedientes <span class="badge-count" id="badge-exp" style="display:none">0</span></a>
+      <a class="nav-item" onclick="showPage('clientes')"><span class="icon">👥</span> Clientes</a>
+      <div class="sidebar-section">Comunicación</div>
+      <a class="nav-item" onclick="showPage('portal-clientes')"><span class="icon">🔗</span> Portal clientes</a>
+      <a class="nav-item" onclick="showPage('chat')"><span class="icon">💬</span> Chat <span class="badge-count" id="badge-chat" style="display:none">0</span></a>
+      <div class="sidebar-section">Configuración</div>
+      <a class="nav-item" onclick="showPage('config-tramites')"><span class="icon">⚙️</span> Trámites</a>
+      <a class="nav-item" onclick="showPage('mi-plan')"><span class="icon">💳</span> Mi plan</a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="sb-avatar">--</div>
+        <div>
+          <div class="user-name" id="sb-nombre">—</div>
+          <div class="user-role" id="sb-rol">—</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="doLogout()">Salir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="page-title">Dashboard</span>
+      <div class="topbar-right">
+        <span id="topbar-tenant" style="font-size:12px;color:var(--text3);font-weight:500"></span>
+        <button class="btn-icon" onclick="loadCurrentPage()" title="Recargar">↻</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- ALERTA PLAN -->
+      <div class="plan-alert hidden" id="plan-alert">
+        <span>⚠️</span>
+        <span id="plan-alert-msg"></span>
+        <a href="#" onclick="showPage('mi-plan')" style="margin-left:auto">Ver plan →</a>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-val" style="color:var(--accent)" id="kpi-exp">—</div><div class="kpi-lbl">Expedientes</div></div>
+          <div class="kpi"><div class="kpi-val" style="color:var(--amber)" id="kpi-activos">—</div><div class="kpi-lbl">En trámite</div></div>
+          <div class="kpi"><div class="kpi-val" style="color:var(--red)" id="kpi-urgentes">—</div><div class="kpi-lbl">Urgentes</div></div>
+          <div class="kpi"><div class="kpi-val" style="color:var(--green)" id="kpi-resueltos">—</div><div class="kpi-lbl">Resueltos</div></div>
+          <div class="kpi"><div class="kpi-val" id="kpi-clientes">—</div><div class="kpi-lbl">Clientes</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+          <div class="card">
+            <div class="card-header"><span class="card-title">⏰ Próximos vencimientos</span></div>
+            <div id="dash-vencimientos" style="padding:14px"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">📋 Expedientes recientes</span></div>
+            <table><thead><tr><th>Expediente</th><th>Estado</th></tr></thead>
+            <tbody id="dash-expedientes-table"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPEDIENTES -->
+      <div id="page-expedientes" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📁 Expedientes</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input class="search-input" id="search-exp" placeholder="Buscar..." oninput="filterExpedientes()">
+              <select class="filter-select" id="filter-exp-estado" onchange="filterExpedientes()">
+                <option value="">Todos</option>
+                <option value="documentacion">Documentación</option>
+                <option value="presentado">Presentado</option>
+                <option value="en_tramite">En trámite</option>
+                <option value="urgente">Urgente</option>
+                <option value="resuelto">Resuelto</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openModal('nuevo-exp')">+ Nuevo</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Número</th><th>Cliente</th><th>Trámite</th><th>Estado</th><th>Gestor</th><th>Apertura</th><th>Acciones</th></tr></thead>
+            <tbody id="exp-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div id="page-clientes" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">👥 Clientes</span>
+            <div style="display:flex;gap:8px">
+              <input class="search-input" id="search-cli" placeholder="Buscar..." oninput="filterClientes()">
+              <button class="btn btn-primary btn-sm" onclick="openModal('nuevo-cliente')">+ Nuevo</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Nacionalidad</th><th>NIE/NIF</th><th>Acciones</th></tr></thead>
+            <tbody id="cli-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PORTAL CLIENTES -->
+      <div id="page-portal-clientes" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🔗 Portal de clientes</span>
+            <button class="btn btn-primary btn-sm" onclick="openModal('nueva-inv')">+ Nueva invitación</button>
+          </div>
+          <table>
+            <thead><tr><th>Cliente</th><th>Expediente</th><th>Estado</th><th>Expira</th><th>Acciones</th></tr></thead>
+            <tbody id="inv-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CHAT -->
+      <div id="page-chat" style="display:none">
+        <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;height:calc(100vh - 130px)">
+          <div class="card" style="overflow-y:auto;margin:0">
+            <div class="card-header"><span class="card-title">Conversaciones</span></div>
+            <div id="lista-chat"></div>
+          </div>
+          <div class="card" style="display:flex;flex-direction:column;margin:0">
+            <div id="chat-panel" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px">
+              ← Selecciona una conversación
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONFIG TRÁMITES -->
+      <div id="page-config-tramites" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">⚙️ Tipos de trámite</span>
+            <button class="btn btn-primary btn-sm" onclick="openModal('nuevo-tramite')">+ Añadir</button>
+          </div>
+          <table>
+            <thead><tr><th>Trámite</th><th>Precio base</th><th>Docs requeridos</th><th>Activo</th><th>Acciones</th></tr></thead>
+            <tbody id="tramites-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MI PLAN -->
+      <div id="page-mi-plan" style="display:none">
+        <div class="card">
+          <div class="card-header"><span class="card-title">💳 Mi plan</span></div>
+          <div id="mi-plan-content" style="padding:24px"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALES -->
+<div class="overlay" id="overlay-nuevo-exp">
+  <div class="modal">
+    <div class="modal-title">📁 Nuevo expediente</div>
+    <div class="form-row">
+      <div class="form-group"><label>Número *</label><input id="exp-num" placeholder="EXP-2025-001"></div>
+      <div class="form-group"><label>Tipo de trámite *</label>
+        <select id="exp-tipo"><option value="">Seleccionar...</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Cliente</label>
+        <select id="exp-cliente"><option value="">Sin asignar</option></select>
+      </div>
+      <div class="form-group"><label>Estado</label>
+        <select id="exp-estado">
+          <option value="documentacion">Documentación</option>
+          <option value="presentado">Presentado</option>
+          <option value="en_tramite">En trámite</option>
+          <option value="urgente">Urgente</option>
+          <option value="resuelto">Resuelto</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Precio (€)</label><input type="number" id="exp-precio" placeholder="0.00"></div>
+      <div class="form-group"><label>Fecha límite</label><input type="date" id="exp-limite"></div>
+    </div>
+    <div class="form-group"><label>Notas</label><textarea id="exp-notas" rows="2" placeholder="Notas internas..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('nuevo-exp')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearExpediente()">Crear expediente</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-nuevo-cliente">
+  <div class="modal">
+    <div class="modal-title">👤 Nuevo cliente</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nombre *</label><input id="cli-nombre" placeholder="María"></div>
+      <div class="form-group"><label>Apellidos *</label><input id="cli-apellidos" placeholder="García López"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Email</label><input type="email" id="cli-email"></div>
+      <div class="form-group"><label>Teléfono</label><input id="cli-telefono"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Nacionalidad</label><input id="cli-nac" placeholder="Venezolana"></div>
+      <div class="form-group"><label>NIE / NIF / Pasaporte</label><input id="cli-nie"></div>
+    </div>
+    <div class="form-group"><label>Notas</label><textarea id="cli-notas" rows="2"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('nuevo-cliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearCliente()">Guardar cliente</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-nueva-inv">
+  <div class="modal">
+    <div class="modal-title">🔗 Nueva invitación de portal</div>
+    <div class="form-group"><label>Cliente *</label>
+      <select id="inv-cliente" onchange="loadExpedientesPorCliente()"><option value="">Seleccionar...</option></select>
+    </div>
+    <div class="form-group"><label>Expediente</label>
+      <select id="inv-expediente"><option value="">Seleccionar...</option></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Email del cliente *</label><input type="email" id="inv-email" placeholder="cliente@email.com"></div>
+      <div class="form-group"><label>Contraseña temporal *</label><input type="password" id="inv-pass" placeholder="Mínimo 8 caracteres"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('nueva-inv')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearInvitacion()">Generar invitación</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-nuevo-tramite">
+  <div class="modal">
+    <div class="modal-title">⚙️ Nuevo tipo de trámite</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nombre *</label><input id="tr-nombre" placeholder="Autorización de Residencia"></div>
+      <div class="form-group"><label>Precio base (€)</label><input type="number" id="tr-precio" placeholder="300"></div>
+    </div>
+    <div class="form-group"><label>Descripción</label><textarea id="tr-desc" rows="2"></textarea></div>
+    <div class="form-group"><label>Documentos requeridos (uno por línea)</label><textarea id="tr-docs" rows="4" placeholder="Pasaporte en vigor&#10;Fotografía reciente&#10;Justificante de pago"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('nuevo-tramite')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearTramite()">Guardar trámite</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+// ── CONFIG ────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'TU_SUPABASE_URL';
+const SUPABASE_KEY = 'TU_SUPABASE_ANON_KEY';
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── ESTADO GLOBAL ────────────────────────────────────────────────────
+let currentUser = null;
+let currentProfile = null;
+let currentTenant = null;
+let currentPlan = null;
+let tid = null; // tenant_id shorthand
+let allExp = [], allCli = [], allInv = [], allTramites = [];
+
+window.db = db;
+
+// ── AUTH ─────────────────────────────────────────────────────────────
+async function checkAuth(){
+  const {data:{session}} = await db.auth.getSession();
+  if(!session) return;
+  await loadUserContext(session);
+}
+
+async function loadUserContext(session){
+  currentUser = session.user;
+  const {data:perfil} = await db.from('perfiles').select('*,tenants(*, planes(*))').eq('id',currentUser.id).single();
+  if(!perfil || !perfil.tenant_id){
+    document.getElementById('login-error').textContent='Cuenta sin despacho asignado. Contacta con soporte.';
+    document.getElementById('login-error').style.display='block';
+    await db.auth.signOut();
+    return;
+  }
+  currentProfile = perfil;
+  currentTenant = perfil.tenants;
+  currentPlan = perfil.tenants?.planes;
+  tid = perfil.tenant_id;
+
+  // UI sidebar
+  document.getElementById('sb-despacho').textContent = currentTenant.nombre;
+  document.getElementById('sb-plan').textContent = currentPlan?.nombre || currentTenant.plan_id;
+  document.getElementById('sb-plan').className = 'sidebar-plan ' + (currentTenant.plan_id||'trial');
+  document.getElementById('sb-nombre').textContent = perfil.nombre || currentUser.email;
+  document.getElementById('sb-rol').textContent = perfil.rol;
+  document.getElementById('sb-avatar').textContent = (perfil.nombre||'U').substring(0,2).toUpperCase();
+  document.getElementById('topbar-tenant').textContent = currentTenant.nombre;
+
+  // Alerta plan
+  checkPlanAlert();
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadDashboard();
+}
+
+function checkPlanAlert(){
+  const alert = document.getElementById('plan-alert');
+  const msg = document.getElementById('plan-alert-msg');
+  if(currentTenant.estado === 'trial' && currentTenant.trial_hasta){
+    const days = Math.ceil((new Date(currentTenant.trial_hasta)-new Date())/(1000*60*60*24));
+    if(days <= 7){
+      msg.innerHTML = `⚠️ Tu periodo de prueba vence en <strong>${days} días</strong>. <a href="#" onclick="showPage('mi-plan')">Actualiza tu plan →</a>`;
+      alert.classList.remove('hidden');
+    }
+  } else if(currentTenant.estado === 'suspendido'){
+    msg.innerHTML = '⛔ Tu cuenta está suspendida. Contacta con soporte para reactivarla.';
+    alert.classList.remove('hidden');
+  }
+}
+
+window.doLogin = async function(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display='none';
+  const {data,error} = await db.auth.signInWithPassword({email,password:pass});
+  if(error){errEl.textContent=error.message;errEl.style.display='block';return;}
+  await loadUserContext(data.session);
+};
+
+window.doLogout = async function(){
+  await db.auth.signOut();
+  location.reload();
+};
+
+// ── NAVIGATION ───────────────────────────────────────────────────────
+let currentPageId = 'dashboard';
+window.showPage = function(id){
+  document.querySelectorAll('[id^="page-"]').forEach(el=>el.style.display='none');
+  const el = document.getElementById('page-'+id);
+  if(el) el.style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const nav = document.querySelector(`.nav-item[onclick*="${id}"]`);
+  if(nav) nav.classList.add('active');
+  const titles = {dashboard:'Dashboard',expedientes:'📁 Expedientes',clientes:'👥 Clientes','portal-clientes':'🔗 Portal clientes',chat:'💬 Chat','config-tramites':'⚙️ Trámites','mi-plan':'💳 Mi plan'};
+  document.getElementById('page-title').textContent = titles[id]||id;
+  currentPageId = id;
+  if(id==='expedientes') loadExpedientes();
+  if(id==='clientes') loadClientes();
+  if(id==='portal-clientes') loadInvitaciones();
+  if(id==='chat') loadChat();
+  if(id==='config-tramites') loadTramites();
+  if(id==='mi-plan') loadMiPlan();
+};
+window.loadCurrentPage = ()=>showPage(currentPageId);
+
+// ── DASHBOARD ────────────────────────────────────────────────────────
+async function loadDashboard(){
+  const [expRes, cliRes] = await Promise.all([
+    db.from('expedientes').select('id,numero,tipo_tramite,estado,fecha_apertura,fecha_limite,clientes(nombre,apellidos)').eq('tenant_id',tid).order('created_at',{ascending:false}),
+    db.from('clientes').select('id').eq('tenant_id',tid)
+  ]);
+  const exps = expRes.data||[];
+  const clis = cliRes.data||[];
+  document.getElementById('kpi-exp').textContent     = exps.length;
+  document.getElementById('kpi-activos').textContent  = exps.filter(e=>e.estado==='en_tramite').length;
+  document.getElementById('kpi-urgentes').textContent = exps.filter(e=>e.estado==='urgente').length;
+  document.getElementById('kpi-resueltos').textContent= exps.filter(e=>e.estado==='resuelto').length;
+  document.getElementById('kpi-clientes').textContent = clis.length;
+
+  // Vencimientos próximos
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const prox = exps.filter(e=>e.fecha_limite&&new Date(e.fecha_limite)>=hoy&&e.estado!=='resuelto')
+    .sort((a,b)=>new Date(a.fecha_limite)-new Date(b.fecha_limite)).slice(0,5);
+  document.getElementById('dash-vencimientos').innerHTML = prox.length
+    ? prox.map(e=>{
+        const d=Math.ceil((new Date(e.fecha_limite)-hoy)/(1000*60*60*24));
+        const col=d<=3?'var(--red)':d<=7?'var(--amber)':'var(--text2)';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-weight:600;font-size:13px">${e.numero}</div>
+            <div style="font-size:11px;color:var(--text3)">${e.tipo_tramite}</div>
+          </div>
+          <span style="color:${col};font-size:12px;font-weight:600">${d}d</span>
+        </div>`;
+      }).join('')
+    : '<p style="color:var(--text3);font-size:13px;text-align:center;padding:16px">Sin vencimientos próximos 🎉</p>';
+
+  // Expedientes recientes
+  const tb=document.getElementById('dash-expedientes-table');
+  tb.innerHTML = exps.slice(0,8).map(e=>`
+    <tr><td><div style="font-weight:500">${e.numero}</div><div style="font-size:11px;color:var(--text3)">${e.tipo_tramite}</div></td>
+    <td>${estadoBadge(e.estado)}</td></tr>`).join('') || '<tr><td colspan="2" class="empty"><p>Sin expedientes</p></td></tr>';
+
+  // Badges
+  const urgentes=exps.filter(e=>e.estado==='urgente').length;
+  const badgeExp=document.getElementById('badge-exp');
+  if(urgentes>0){badgeExp.textContent=urgentes;badgeExp.style.display='flex';}
+}
+
+// ── EXPEDIENTES ──────────────────────────────────────────────────────
+async function loadExpedientes(){
+  const {data} = await db.from('expedientes').select('*,clientes(nombre,apellidos),perfiles(nombre)').eq('tenant_id',tid).order('created_at',{ascending:false});
+  allExp = data||[];
+  renderExpedientes(allExp);
+}
+
+function renderExpedientes(list){
+  const tb=document.getElementById('exp-table');
+  if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">📁</div><p>Sin expedientes. Crea el primero.</p></div></td></tr>';return;}
+  tb.innerHTML=list.map(e=>`
+    <tr>
+      <td><div style="font-weight:600">${e.numero}</div></td>
+      <td style="color:var(--text2)">${e.clientes?e.clientes.nombre+' '+e.clientes.apellidos:'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${e.tipo_tramite}</td>
+      <td>${estadoBadge(e.estado)}</td>
+      <td style="font-size:12px;color:var(--text3)">${e.perfiles?.nombre||'—'}</td>
+      <td style="font-size:12px;color:var(--text3)">${fDate(e.fecha_apertura)}</td>
+      <td><div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="cambiarEstadoExp('${e.id}','${e.estado}')">✏️</button>
+        <button class="btn btn-red btn-sm" onclick="eliminarExp('${e.id}')">🗑</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+window.filterExpedientes=function(){
+  const q=document.getElementById('search-exp').value.toLowerCase();
+  const est=document.getElementById('filter-exp-estado').value;
+  renderExpedientes(allExp.filter(e=>{
+    const mq=!q||(e.numero+' '+(e.tipo_tramite||'')+' '+(e.clientes?.nombre||'')).toLowerCase().includes(q);
+    const me=!est||e.estado===est;
+    return mq&&me;
+  }));
+};
+
+window.crearExpediente=async function(){
+  const num=document.getElementById('exp-num').value.trim();
+  const tipo=document.getElementById('exp-tipo').value;
+  const cli=document.getElementById('exp-cliente').value||null;
+  const est=document.getElementById('exp-estado').value;
+  const precio=document.getElementById('exp-precio').value||null;
+  const limite=document.getElementById('exp-limite').value||null;
+  const notas=document.getElementById('exp-notas').value;
+  if(!num||!tipo){return toast('Número y tipo de trámite son obligatorios');}
+  const {error}=await db.from('expedientes').insert({tenant_id:tid,numero:num,tipo_tramite:tipo,cliente_id:cli,estado:est,precio:precio?parseFloat(precio):null,fecha_limite:limite,notas,gestor_id:currentProfile.id});
+  if(error){return toast('Error: '+error.message,'red');}
+  toast('Expediente creado ✅');
+  closeModal('nuevo-exp');
+  loadExpedientes();
+  loadDashboard();
+};
+
+window.cambiarEstadoExp=function(id,estadoActual){
+  const estados=['documentacion','presentado','en_tramite','urgente','resuelto'];
+  const idx=estados.indexOf(estadoActual);
+  const nuevo=estados[(idx+1)%estados.length];
+  db.from('expedientes').update({estado:nuevo,updated_at:new Date().toISOString()}).eq('id',id).eq('tenant_id',tid).then(({error})=>{
+    if(error) return toast('Error','red');
+    toast('Estado actualizado ✅');
+    loadExpedientes();
+    loadDashboard();
+  });
+};
+
+window.eliminarExp=async function(id){
+  if(!confirm('¿Eliminar este expediente? Esta acción no se puede deshacer.')) return;
+  await db.from('expedientes').delete().eq('id',id).eq('tenant_id',tid);
+  toast('Expediente eliminado');
+  loadExpedientes();
+  loadDashboard();
+};
+
+// ── CLIENTES ─────────────────────────────────────────────────────────
+async function loadClientes(){
+  const {data}=await db.from('clientes').select('*').eq('tenant_id',tid).order('created_at',{ascending:false});
+  allCli=data||[];
+  renderClientes(allCli);
+}
+
+function renderClientes(list){
+  const tb=document.getElementById('cli-table');
+  if(!list.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">👥</div><p>Sin clientes aún</p></div></td></tr>';return;}
+  tb.innerHTML=list.map(c=>`
+    <tr>
+      <td><div style="font-weight:600">${c.nombre} ${c.apellidos||''}</div></td>
+      <td style="color:var(--text2)">${c.email||'—'}</td>
+      <td style="color:var(--text2)">${c.telefono||'—'}</td>
+      <td style="font-size:12px;color:var(--text3)">${c.nacionalidad||'—'}</td>
+      <td style="font-size:12px;color:var(--text3)">${c.nif_nie||c.pasaporte||'—'}</td>
+      <td><button class="btn btn-red btn-sm" onclick="eliminarCliente('${c.id}')">🗑</button></td>
+    </tr>`).join('');
+}
+
+window.filterClientes=function(){
+  const q=document.getElementById('search-cli').value.toLowerCase();
+  renderClientes(allCli.filter(c=>(c.nombre+' '+c.apellidos+' '+(c.email||'')).toLowerCase().includes(q)));
+};
+
+window.crearCliente=async function(){
+  const nom=document.getElementById('cli-nombre').value.trim();
+  const ape=document.getElementById('cli-apellidos').value.trim();
+  if(!nom){return toast('El nombre es obligatorio');}
+  const {error}=await db.from('clientes').insert({tenant_id:tid,nombre:nom,apellidos:ape,email:document.getElementById('cli-email').value.trim()||null,telefono:document.getElementById('cli-telefono').value.trim()||null,nacionalidad:document.getElementById('cli-nac').value.trim()||null,nif_nie:document.getElementById('cli-nie').value.trim()||null,notas:document.getElementById('cli-notas').value,creado_por:currentProfile.id});
+  if(error) return toast('Error: '+error.message,'red');
+  toast('Cliente guardado ✅');
+  closeModal('nuevo-cliente');
+  loadClientes();
+};
+
+window.eliminarCliente=async function(id){
+  if(!confirm('¿Eliminar este cliente?')) return;
+  await db.from('clientes').delete().eq('id',id).eq('tenant_id',tid);
+  toast('Cliente eliminado');
+  loadClientes();
+};
+
+// ── INVITACIONES ─────────────────────────────────────────────────────
+async function loadInvitaciones(){
+  const {data}=await db.from('invitaciones').select('*,clientes(nombre,apellidos),expedientes(numero,tipo_tramite)').eq('tenant_id',tid).order('created_at',{ascending:false});
+  allInv=data||[];
+  const tb=document.getElementById('inv-table');
+  if(!allInv.length){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-icon">🔗</div><p>Sin invitaciones generadas</p></div></td></tr>';return;}
+  tb.innerHTML=allInv.map(i=>`
+    <tr>
+      <td style="font-weight:500">${i.clientes?.nombre||'—'} ${i.clientes?.apellidos||''}</td>
+      <td style="font-size:12px;color:var(--text2)">${i.expedientes?.numero||'—'}</td>
+      <td>${i.activa?'<span style="color:var(--green);font-size:12px">✓ Activa</span>':'<span style="color:var(--text3);font-size:12px">Inactiva</span>'}</td>
+      <td style="font-size:12px;color:var(--text3)">${fDate(i.expira_en)}</td>
+      <td><div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="copiarEnlacePortal('${i.token}')">📋 Copiar enlace</button>
+        <button class="btn btn-red btn-sm" onclick="desactivarInv('${i.id}')">✕</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+window.loadExpedientesPorCliente=async function(){
+  const cliId=document.getElementById('inv-cliente').value;
+  const sel=document.getElementById('inv-expediente');
+  sel.innerHTML='<option value="">Sin expediente</option>';
+  if(!cliId) return;
+  const {data}=await db.from('expedientes').select('id,numero,tipo_tramite').eq('tenant_id',tid).eq('cliente_id',cliId);
+  (data||[]).forEach(e=>{sel.innerHTML+=`<option value="${e.id}">${e.numero} — ${e.tipo_tramite}</option>`;});
+  const cli=allCli.find(c=>c.id===cliId);
+  if(cli?.email) document.getElementById('inv-email').value=cli.email;
+};
+
+window.crearInvitacion=async function(){
+  const cliId=document.getElementById('inv-cliente').value;
+  const expId=document.getElementById('inv-expediente').value||null;
+  const email=document.getElementById('inv-email').value.trim();
+  const pass=document.getElementById('inv-pass').value;
+  if(!cliId||!email||!pass){return toast('Cliente, email y contraseña son obligatorios');}
+  if(pass.length<8){return toast('Contraseña mínimo 8 caracteres');}
+  const {error}=await db.from('invitaciones').insert({tenant_id:tid,cliente_id:cliId,expediente_id:expId,email,password_hash:btoa(pass),creada_por:currentProfile.id});
+  if(error) return toast('Error: '+error.message,'red');
+  toast('Invitación creada ✅');
+  closeModal('nueva-inv');
+  loadInvitaciones();
+};
+
+window.copiarEnlacePortal=function(token){
+  const url=`${location.origin}/migranova-cliente.html?token=${token}`;
+  navigator.clipboard.writeText(url).then(()=>toast('Enlace copiado ✅')).catch(()=>toast('URL: '+url));
+};
+
+window.desactivarInv=async function(id){
+  await db.from('invitaciones').update({activa:false}).eq('id',id).eq('tenant_id',tid);
+  toast('Invitación desactivada');
+  loadInvitaciones();
+};
+
+// ── CHAT ─────────────────────────────────────────────────────────────
+async function loadChat(){
+  const {data}=await db.from('invitaciones').select('*,clientes(nombre,apellidos),expedientes(numero)').eq('tenant_id',tid).eq('activa',true).order('created_at',{ascending:false});
+  const list=document.getElementById('lista-chat');
+  if(!data?.length){list.innerHTML='<div class="empty"><div class="empty-icon">💬</div><p>Sin conversaciones activas</p></div>';return;}
+  list.innerHTML=data.map(i=>`
+    <div style="padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:.15s" 
+         onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''"
+         onclick="abrirChat('${i.id}','${i.clientes?.nombre} ${i.clientes?.apellidos||''}')">
+      <div style="font-weight:600;font-size:13px">${i.clientes?.nombre} ${i.clientes?.apellidos||''}</div>
+      <div style="font-size:11px;color:var(--text3)">${i.expedientes?.numero||'Sin expediente'}</div>
+    </div>`).join('');
+}
+
+let chatInvId=null;
+window.abrirChat=async function(invId,nombre){
+  chatInvId=invId;
+  const {data:msgs}=await db.from('mensajes_chat').select('*').eq('invitacion_id',invId).order('created_at',{ascending:true});
+  await db.from('mensajes_chat').update({leido:true}).eq('invitacion_id',invId).eq('remitente','cliente').eq('tenant_id',tid);
+  const panel=document.getElementById('chat-panel');
+  panel.style.cssText='flex:1;display:flex;flex-direction:column;';
+  panel.innerHTML=`
+    <div class="card-header"><span class="card-title">💬 ${nombre}</span></div>
+    <div id="chat-msgs" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px">
+      ${(msgs||[]).map(m=>`
+        <div style="display:flex;flex-direction:column;align-items:${m.remitente==='despacho'?'flex-end':'flex-start'}">
+          <div style="background:${m.remitente==='despacho'?'var(--accent)':'var(--surface2)'};color:${m.remitente==='despacho'?'#fff':'var(--text)'};padding:9px 13px;border-radius:10px;max-width:75%;font-size:13px">${m.mensaje}</div>
+          <span style="font-size:10px;color:var(--text3);margin-top:3px">${fDateTime(m.created_at)}</span>
+        </div>`).join('')}
+      ${!msgs?.length?'<div style="text-align:center;color:var(--text3);font-size:13px;margin:auto">Sin mensajes aún</div>':''}
+    </div>
+    <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px">
+      <input id="chat-input" placeholder="Escribe un mensaje..." style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:Sora,sans-serif;font-size:13px;outline:none" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMsg();}">
+      <button class="btn btn-primary" onclick="enviarMsg()">Enviar</button>
+    </div>`;
+  const msgs_el=document.getElementById('chat-msgs');
+  if(msgs_el) msgs_el.scrollTop=msgs_el.scrollHeight;
+};
+
+window.enviarMsg=async function(){
+  const txt=document.getElementById('chat-input')?.value?.trim();
+  if(!txt||!chatInvId) return;
+  document.getElementById('chat-input').value='';
+  await db.from('mensajes_chat').insert({tenant_id:tid,invitacion_id:chatInvId,remitente:'despacho',remitente_nombre:currentProfile.nombre||'Despacho',mensaje:txt});
+  const inv=allInv.find(i=>i.id===chatInvId);
+  abrirChat(chatInvId,inv?`${inv.clientes?.nombre} ${inv.clientes?.apellidos||''}`:chatInvId);
+};
+
+// ── TRÁMITES ─────────────────────────────────────────────────────────
+async function loadTramites(){
+  const {data}=await db.from('config_tramites').select('*').eq('tenant_id',tid).order('tipo_tramite');
+  allTramites=data||[];
+  const tb=document.getElementById('tramites-table');
+  if(!allTramites.length){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-icon">⚙️</div><p>Sin trámites configurados</p></div></td></tr>';return;}
+  tb.innerHTML=allTramites.map(t=>`
+    <tr>
+      <td style="font-weight:600">${t.tipo_tramite}</td>
+      <td style="color:var(--text2)">${t.precio_base?t.precio_base+'€':'—'}</td>
+      <td style="font-size:12px;color:var(--text3)">${(t.docs_requeridos||[]).length} docs</td>
+      <td>${t.activo?'<span style="color:var(--green)">✓</span>':'<span style="color:var(--text3)">✗</span>'}</td>
+      <td><button class="btn btn-red btn-sm" onclick="eliminarTramite('${t.id}')">🗑</button></td>
+    </tr>`).join('');
+}
+
+window.crearTramite=async function(){
+  const nom=document.getElementById('tr-nombre').value.trim();
+  const precio=document.getElementById('tr-precio').value||null;
+  const desc=document.getElementById('tr-desc').value;
+  const docsRaw=document.getElementById('tr-docs').value;
+  const docs=docsRaw.split('\n').map(d=>d.trim()).filter(Boolean);
+  if(!nom) return toast('El nombre es obligatorio');
+  const {error}=await db.from('config_tramites').insert({tenant_id:tid,tipo_tramite:nom,descripcion:desc,precio_base:precio?parseFloat(precio):null,docs_requeridos:docs});
+  if(error) return toast('Error: '+error.message,'red');
+  toast('Trámite guardado ✅');
+  closeModal('nuevo-tramite');
+  loadTramites();
+};
+
+window.eliminarTramite=async function(id){
+  if(!confirm('¿Eliminar este trámite?')) return;
+  await db.from('config_tramites').delete().eq('id',id).eq('tenant_id',tid);
+  toast('Trámite eliminado');
+  loadTramites();
+};
+
+// ── MI PLAN ──────────────────────────────────────────────────────────
+async function loadMiPlan(){
+  const t=currentTenant, p=currentPlan;
+  const [expCount,cliCount,userCount]=await Promise.all([
+    db.from('expedientes').select('id',{count:'exact',head:true}).eq('tenant_id',tid),
+    db.from('clientes').select('id',{count:'exact',head:true}).eq('tenant_id',tid),
+    db.from('perfiles').select('id',{count:'exact',head:true}).eq('tenant_id',tid)
+  ]);
+  const content=document.getElementById('mi-plan-content');
+  content.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div>
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:16px">Tu plan actual</h3>
+        <div style="background:var(--accent-light);border:1px solid rgba(26,79,216,.2);border-radius:10px;padding:20px;margin-bottom:16px">
+          <div style="font-size:24px;font-weight:700;color:var(--accent)">${p?.nombre||t.plan_id?.toUpperCase()}</div>
+          <div style="font-size:28px;font-weight:700;margin:4px 0">${p?.precio_mensual||0}€<span style="font-size:14px;font-weight:400;color:var(--text2)">/mes</span></div>
+          <div class="sidebar-plan ${t.plan_id}" style="display:inline-block;margin-top:6px">${t.estado}</div>
+        </div>
+        ${t.estado==='trial'&&t.trial_hasta?`<div style="background:var(--amber-light);border:1px solid rgba(217,119,6,.2);border-radius:8px;padding:12px;font-size:13px;color:var(--amber)">⏳ Trial hasta el <strong>${fDate(t.trial_hasta)}</strong></div>`:''}
+      </div>
+      <div>
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:16px">Uso actual</h3>
+        ${usageBar('Expedientes',expCount.count,p?.max_expedientes)}
+        ${usageBar('Usuarios',userCount.count,p?.max_usuarios)}
+        ${usageBar('Clientes',cliCount.count,p?.max_clientes)}
+      </div>
+    </div>
+    <div style="margin-top:28px">
+      <h3 style="font-size:14px;font-weight:700;margin-bottom:16px">Cambiar plan</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        ${['basic','pro','enterprise'].map(planId=>`
+          <div style="background:${t.plan_id===planId?'var(--accent-light)':'var(--surface2)'};border:1.5px solid ${t.plan_id===planId?'var(--accent)':'var(--border)'};border-radius:10px;padding:16px;min-width:160px;cursor:pointer" onclick="solicitarCambioPlan('${planId}')">
+            <div style="font-weight:700">${planId.charAt(0).toUpperCase()+planId.slice(1)}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">${{basic:'49€/mes',pro:'99€/mes',enterprise:'299€/mes'}[planId]}</div>
+            ${t.plan_id===planId?'<div style="font-size:11px;color:var(--accent);margin-top:6px;font-weight:600">Plan actual</div>':'<div style="font-size:11px;color:var(--accent);margin-top:6px">Seleccionar →</div>'}
+          </div>`).join('')}
+      </div>
+      <p style="font-size:12px;color:var(--text3);margin-top:12px">Los cambios de plan se aplican en el siguiente ciclo de facturación. Contacta con soporte para Enterprise.</p>
+    </div>`;
+}
+
+function usageBar(label,current,max){
+  const pct=max?Math.min(100,Math.round((current/max)*100)):0;
+  const color=pct>85?'var(--red)':pct>60?'var(--amber)':'var(--green)';
+  return `<div style="margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
+      <span style="font-weight:500">${label}</span>
+      <span style="color:var(--text3)">${current}${max?'/'+max:' (ilimitado)'}</span>
+    </div>
+    ${max?`<div style="background:var(--surface2);border-radius:999px;height:6px"><div style="background:${color};height:6px;border-radius:999px;width:${pct}%;transition:.3s"></div></div>`:'<div style="font-size:11px;color:var(--green)">∞ Ilimitado</div>'}
+  </div>`;
+}
+
+window.solicitarCambioPlan=function(planId){
+  toast(`Para cambiar al plan ${planId}, contacta con soporte@migranova.es`);
+};
+
+// ── MODALES ──────────────────────────────────────────────────────────
+window.openModal=function(id){
+  if(id==='nuevo-exp') populateSelects();
+  if(id==='nueva-inv') populateCliSelect();
+  document.getElementById('overlay-'+id).classList.add('open');
+};
+window.closeModal=function(id){document.getElementById('overlay-'+id).classList.remove('open');};
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o){const id=o.id.replace('overlay-','');closeModal(id);}}));
+
+async function populateSelects(){
+  if(!allCli.length) await loadClientes();
+  if(!allTramites.length) await loadTramites();
+  const selCli=document.getElementById('exp-cliente');
+  selCli.innerHTML='<option value="">Sin asignar</option>'+allCli.map(c=>`<option value="${c.id}">${c.nombre} ${c.apellidos||''}</option>`).join('');
+  const selTipo=document.getElementById('exp-tipo');
+  selTipo.innerHTML='<option value="">Seleccionar...</option>'+allTramites.map(t=>`<option value="${t.tipo_tramite}">${t.tipo_tramite}</option>`).join('');
+}
+
+async function populateCliSelect(){
+  if(!allCli.length) await loadClientes();
+  document.getElementById('inv-cliente').innerHTML='<option value="">Seleccionar...</option>'+allCli.map(c=>`<option value="${c.id}">${c.nombre} ${c.apellidos||''}</option>`).join('');
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────
+function estadoBadge(e){
+  const m={documentacion:'📄 Documentación',presentado:'📨 Presentado',en_tramite:'⏳ En trámite',urgente:'🚨 Urgente',resuelto:'✅ Resuelto'};
+  return `<span class="badge badge-${e}">${m[e]||e}</span>`;
+}
+function fDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});}
+function fDateTime(d){if(!d)return'—';return new Date(d).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.style.borderColor=type==='red'?'rgba(220,38,38,.3)':'rgba(5,150,105,.3)';
+  t.style.color=type==='red'?'var(--red)':'var(--green)';
+  t.textContent=msg; t.style.display='block';
+  setTimeout(()=>t.style.display='none',3000);
+}
+window.toast=toast;
+
+// ── INIT ─────────────────────────────────────────────────────────────
+checkAuth();
+</script>
+</body>
+</html>
