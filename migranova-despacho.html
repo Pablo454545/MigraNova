@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MigraNova — Despacho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f0ede6;--surface3:#e8e4db;
+  --text:#1c1917;--text2:#57534e;--text3:#a8a29e;
+  --accent:#1a4fd8;--accent2:#0f3ba8;--accent-light:#eff3ff;
+  --green:#15803d;--green-light:#dcfce7;--green-mid:#86efac;
+  --amber:#b45309;--amber-light:#fef3c7;
+  --red:#b91c1c;--red-light:#fee2e2;
+  --blue:#1d4ed8;--blue-light:#dbeafe;
+  --purple:#7c3aed;--purple-light:#ede9fe;
+  --border:#e7e3da;--border2:#d6d0c4;
+  --sidebar-w:228px;
+  --radius:10px;--shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.07);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;display:flex}
+
+/* ── LOGIN ─────────────────────────────── */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0d1117 0%,#1a2744 100%);display:flex;align-items:center;justify-content:center;z-index:500}
+.login-card{background:#fff;border-radius:18px;padding:38px;max-width:380px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.login-logo{text-align:center;margin-bottom:26px}
+.login-logo h1{font-family:'DM Serif Display',serif;font-size:26px;color:#0d1117;margin-bottom:4px}
+.login-logo p{font-size:13px;color:#6b7280}
+
+/* ── SIDEBAR ───────────────────────────── */
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;overflow-y:auto;z-index:20;flex-shrink:0}
+.sidebar-header{padding:18px 16px;border-bottom:1px solid var(--border)}
+.sidebar-brand{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);margin-bottom:2px}
+.sidebar-tenant{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-plan-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:999px;margin-top:6px;text-transform:uppercase;letter-spacing:.06em}
+.plan-trial{background:var(--amber-light);color:var(--amber)}
+.plan-basic,.plan-pro{background:var(--accent-light);color:var(--accent)}
+.plan-enterprise{background:var(--purple-light);color:var(--purple)}
+.sidebar-nav{padding:10px 8px;flex:1}
+.nav-section{padding:10px 8px 4px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:.15s;margin:1px 0;text-decoration:none;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-light);color:var(--accent);font-weight:600}
+.nav-item .ni{width:18px;text-align:center;font-size:15px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.sidebar-footer{padding:12px;border-top:1px solid var(--border)}
+.user-row{display:flex;align-items:center;gap:9px}
+.user-av{width:30px;height:30px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-weight:600;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-role{font-size:10px;color:var(--text3)}
+
+/* ── MAIN ──────────────────────────────── */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:10}
+.topbar-title{font-size:15px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.content{padding:24px;flex:1}
+
+/* ── BTNS ──────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border2)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-green{background:var(--green-light);color:var(--green);border:1px solid var(--green-mid)}
+.btn-green:hover{background:#bbf7d0}
+.btn-red{background:var(--red-light);color:var(--red);border:1px solid #fca5a5}
+.btn-red:hover{background:#fecaca}
+.btn-sm{padding:5px 11px;font-size:12px;border-radius:6px}
+
+/* ── CARDS ─────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card-title{font-size:14px;font-weight:700}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:22px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.kpi-val{font-size:28px;font-weight:700;margin-bottom:2px}
+.kpi-lbl{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+
+/* ── TABLE ─────────────────────────────── */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
+td{padding:11px 14px;border-bottom:1px solid rgba(0,0,0,.04);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+
+/* ── BADGES ────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.badge-documentacion{background:#f3f4f6;color:#374151}
+.badge-presentado{background:var(--amber-light);color:var(--amber)}
+.badge-en_tramite{background:var(--accent-light);color:var(--accent)}
+.badge-urgente{background:var(--red-light);color:var(--red)}
+.badge-resuelto{background:var(--green-light);color:var(--green)}
+.badge-pendiente{background:#f3f4f6;color:#6b7280}
+.badge-subido{background:var(--blue-light);color:var(--blue)}
+.badge-aprobado{background:var(--green-light);color:var(--green)}
+.badge-rechazado{background:var(--red-light);color:var(--red)}
+
+/* ── INPUTS ────────────────────────────── */
+.input{padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'Sora',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:.2s}
+.input:focus{border-color:var(--accent);background:#fff}
+.search-input{width:220px}
+.filter-select{background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;font-family:'Sora',sans-serif;font-size:12px;color:var(--text);outline:none;cursor:pointer}
+
+/* ── MODALES ───────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:14px;padding:28px;max-width:520px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,.15);max-height:90vh;overflow-y:auto}
+.modal-lg{max-width:680px}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'Sora',sans-serif;font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:.15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);background:#fff}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.empty{text-align:center;padding:48px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+
+/* ── PLAN ALERT ────────────────────────── */
+.plan-alert{background:var(--amber-light);border:1px solid rgba(180,83,9,.2);border-radius:9px;padding:11px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--amber)}
+.plan-alert.hidden{display:none}
+
+/* ── TOAST ─────────────────────────────── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:12px 18px;border-radius:9px;font-size:13px;z-index:999;display:none;box-shadow:var(--shadow);font-weight:500}
+.toast.ok{border-color:var(--green-mid);color:var(--green)}
+.toast.err{border-color:#fca5a5;color:var(--red)}
+
+/* ══════════════════════════════════════════
+   MÓDULO DOCUMENTOS
+══════════════════════════════════════════ */
+.docs-layout{display:grid;grid-template-columns:300px 1fr;gap:0;height:calc(100vh - 57px);margin:-24px;overflow:hidden}
+.docs-left{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.docs-left-header{padding:16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.docs-left-header h3{font-size:13px;font-weight:700;margin-bottom:10px}
+.docs-exp-list{flex:1;overflow-y:auto;padding:6px}
+.docs-exp-item{padding:12px 12px;border-radius:8px;cursor:pointer;margin-bottom:3px;transition:.15s;border:1.5px solid transparent}
+.docs-exp-item:hover{background:var(--surface2)}
+.docs-exp-item.active{background:var(--accent-light);border-color:rgba(26,79,216,.15)}
+.dei-num{font-weight:700;font-size:13px}
+.dei-cli{font-size:11px;color:var(--text2);margin-top:1px}
+.dei-tram{font-size:11px;color:var(--text3)}
+.dei-progress{margin-top:8px;display:flex;align-items:center;gap:7px}
+.pbar-wrap{flex:1;height:5px;background:var(--border);border-radius:999px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:999px;transition:width .4s}
+.pbar-pct{font-size:11px;font-weight:700;color:var(--text2);min-width:28px;text-align:right}
+
+.docs-right{display:flex;flex-direction:column;overflow:hidden}
+.docs-right-header{padding:18px 22px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-shrink:0}
+.docs-right-content{flex:1;overflow-y:auto;padding:20px 22px}
+
+/* Progress ring */
+.progress-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:24px}
+.ring-wrap{position:relative;width:76px;height:76px;flex-shrink:0}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--border);stroke-width:8}
+.ring-fill{fill:none;stroke:var(--green);stroke-width:8;stroke-linecap:round;stroke-dasharray:220;stroke-dashoffset:220;transition:stroke-dashoffset .6s,stroke .4s}
+.ring-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700}
+.prog-stats{display:flex;gap:20px;flex-wrap:wrap}
+.ps-item{text-align:center}
+.ps-num{font-size:22px;font-weight:700}
+.ps-lbl{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+
+/* Checklist */
+.checklist-block{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.cl-header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cl-title{font-size:13px;font-weight:700}
+.doc-row{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid rgba(0,0,0,.04);transition:.15s}
+.doc-row:last-child{border-bottom:none}
+.doc-row:hover{background:var(--surface2)}
+.doc-status-dot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:2px solid transparent}
+.dot-pendiente{background:var(--surface2);border-color:var(--border2)}
+.dot-subido{background:var(--blue-light);border-color:#93c5fd}
+.dot-aprobado{background:var(--green-light);border-color:var(--green-mid)}
+.dot-rechazado{background:var(--red-light);border-color:#fca5a5}
+.doc-info{flex:1;min-width:0}
+.doc-nombre{font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.doc-meta{font-size:11px;color:var(--text3);margin-top:3px}
+.doc-meta a{color:var(--accent);text-decoration:none;font-weight:600}
+.doc-meta a:hover{text-decoration:underline}
+.doc-rechazo{font-size:11px;color:var(--red);font-style:italic;margin-top:3px}
+.doc-actions-row{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap}
+.oblig-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:var(--amber-light);color:var(--amber);text-transform:uppercase;letter-spacing:.04em}
+.opt-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:var(--surface2);color:var(--text3);text-transform:uppercase}
+
+/* File drop */
+.file-drop-zone{border:2px dashed var(--border2);border-radius:9px;padding:22px;text-align:center;cursor:pointer;transition:.2s}
+.file-drop-zone:hover,.file-drop-zone.drag{border-color:var(--accent);background:var(--accent-light)}
+.file-drop-zone.has-file{border-color:var(--green);background:var(--green-light)}
+.file-drop-zone input{display:none}
+.fdz-icon{font-size:28px;margin-bottom:6px}
+.fdz-text{font-size:13px;color:var(--text3)}
+.fdz-filename{font-size:13px;font-weight:600;color:var(--green);margin-top:4px}
+
+/* Docs empty */
+.docs-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3);text-align:center;padding:40px}
+.docs-empty-icon{font-size:52px;margin-bottom:14px;opacity:.35}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>🏛 MigraNova</h1>
+      <p>Portal del despacho</p>
+    </div>
+    <p id="login-err" style="color:#b91c1c;font-size:12px;margin-bottom:10px;display:none"></p>
+    <div class="form-group"><label>Email</label><input type="email" id="login-email" class="input" style="width:100%" placeholder="tu@despacho.es"></div>
+    <div class="form-group"><label>Contraseña</label><input type="password" id="login-pass" class="input" style="width:100%" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="doLogin()">Entrar →</button>
+    <p style="text-align:center;margin-top:14px;font-size:12px;color:#9ca3af"><a href="migranova-landing.html" style="color:#1a4fd8;text-decoration:none">¿Sin cuenta? Regístrate gratis →</a></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;width:100%">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">🏛 MigraNova</div>
+      <div class="sidebar-tenant" id="sb-tenant">—</div>
+      <div class="sidebar-plan-badge" id="sb-plan">trial</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <button class="nav-item active" onclick="showPage('dashboard')"><span class="ni">📊</span>Dashboard</button>
+      <button class="nav-item" onclick="showPage('expedientes')"><span class="ni">📁</span>Expedientes<span class="nav-badge" id="badge-urgentes" style="display:none">0</span></button>
+      <button class="nav-item" onclick="showPage('clientes')"><span class="ni">👥</span>Clientes</button>
+      <div class="nav-section">Documentación</div>
+      <button class="nav-item" onclick="showPage('documentos')"><span class="ni">📋</span>Gestor documentos<span class="nav-badge" id="badge-docs" style="display:none">0</span></button>
+      <button class="nav-item" onclick="showPage('portal-clientes')"><span class="ni">🔗</span>Portal clientes</button>
+      <button class="nav-item" onclick="showPage('chat')"><span class="ni">💬</span>Chat<span class="nav-badge" id="badge-chat" style="display:none">0</span></button>
+      <div class="nav-section">Configuración</div>
+      <button class="nav-item" onclick="showPage('config-tramites')"><span class="ni">⚙️</span>Trámites</button>
+      <button class="nav-item" onclick="showPage('mi-plan')"><span class="ni">💳</span>Mi plan</button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-av" id="sb-av">--</div>
+        <div><div class="user-name" id="sb-nombre">—</div><div class="user-role" id="sb-rol">—</div></div>
+      </div>
+      <div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="doLogout()">Salir</button></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="page-title">Dashboard</span>
+      <div class="topbar-right">
+        <span id="tb-tenant" style="font-size:12px;color:var(--text3);font-weight:500"></span>
+        <button class="btn btn-ghost btn-sm" onclick="loadCurrentPage()">↻</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- PLAN ALERT -->
+      <div class="plan-alert hidden" id="plan-alert">
+        <span>⚠️</span><span id="plan-alert-msg"></span>
+        <button class="btn btn-ghost btn-sm" onclick="showPage('mi-plan')" style="margin-left:auto">Ver plan →</button>
+      </div>
+
+      <!-- ═══ DASHBOARD ═══ -->
+      <div id="page-dashboard">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-val" style="color:var(--accent)" id="k-exp">—</div><div class="kpi-lbl">Expedientes</div></div>
+          <div class="kpi"><div class="kpi-val" style="color:var(--amber)" id="k-tramite">—</div><div class="kpi-lbl">En trámite</div></div>
+          <div class="kpi"><div class="kpi-val" style="color:var(--red)" id="k-urgente">—</div><div class="kpi-lbl">Urgentes</div></div>
+          <div class="kpi"><div class="kpi-val" style="color:var(--green)" id="k-resuelto">—</div><div class="kpi-lbl">Resueltos</div></div>
+          <div class="kpi"><div class="kpi-val" id="k-clientes">—</div><div class="kpi-lbl">Clientes</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+          <div class="card"><div class="card-header"><span class="card-title">⏰ Vencimientos próximos</span></div><div id="dash-venc" style="padding:14px"></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">📁 Expedientes recientes</span></div>
+            <table><thead><tr><th>Expediente</th><th>Estado</th></tr></thead><tbody id="dash-exp-tb"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ EXPEDIENTES ═══ -->
+      <div id="page-expedientes" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📁 Expedientes</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input class="input search-input" id="search-exp" placeholder="Buscar..." oninput="filterExp()">
+              <select class="filter-select" id="filt-exp-est" onchange="filterExp()">
+                <option value="">Todos</option>
+                <option value="documentacion">Documentación</option>
+                <option value="presentado">Presentado</option>
+                <option value="en_tramite">En trámite</option>
+                <option value="urgente">Urgente</option>
+                <option value="resuelto">Resuelto</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openModal('nuevo-exp')">+ Nuevo</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Número</th><th>Cliente</th><th>Trámite</th><th>Docs</th><th>Estado</th><th>Apertura</th><th>Acciones</th></tr></thead>
+            <tbody id="exp-tb"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ CLIENTES ═══ -->
+      <div id="page-clientes" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">👥 Clientes</span>
+            <div style="display:flex;gap:8px">
+              <input class="input search-input" id="search-cli" placeholder="Buscar..." oninput="filterCli()">
+              <button class="btn btn-primary btn-sm" onclick="openModal('nuevo-cliente')">+ Nuevo</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Nacionalidad</th><th>NIE/NIF</th><th>Acciones</th></tr></thead>
+            <tbody id="cli-tb"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ DOCUMENTOS ═══ -->
+      <div id="page-documentos" style="display:none">
+        <div class="docs-layout">
+          <!-- Lista expedientes -->
+          <div class="docs-left">
+            <div class="docs-left-header">
+              <h3>📋 Expedientes</h3>
+              <input class="input" style="width:100%;font-size:12px" id="search-docs-exp" placeholder="Buscar expediente..." oninput="filterDocsExp()">
+            </div>
+            <div class="docs-exp-list" id="docs-exp-list">
+              <div style="padding:30px;text-align:center;color:var(--text3);font-size:13px">Cargando...</div>
+            </div>
+          </div>
+          <!-- Detalle documentos -->
+          <div class="docs-right">
+            <div id="docs-empty-state" class="docs-empty">
+              <div class="docs-empty-icon">📂</div>
+              <h3 style="font-size:16px;font-weight:600;color:var(--text2);margin-bottom:6px">Selecciona un expediente</h3>
+              <p style="font-size:13px;line-height:1.6">Elige un expediente de la lista para ver y gestionar su documentación</p>
+            </div>
+            <div id="docs-detail" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+              <div class="docs-right-header">
+                <div>
+                  <div style="font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:4px" id="docs-detail-num">—</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="docs-detail-meta"></div>
+                </div>
+                <div style="display:flex;gap:7px;flex-wrap:wrap">
+                  <button class="btn btn-ghost btn-sm" onclick="copiarEnlaceCliente()">🔗 Enlace cliente</button>
+                  <button class="btn btn-ghost btn-sm" onclick="openModal('anadir-doc')">＋ Doc extra</button>
+                  <button class="btn btn-primary btn-sm" onclick="abrirSubirDoc(null)">⬆ Subir</button>
+                </div>
+              </div>
+              <div style="flex:1;overflow-y:auto;padding:20px 22px">
+                <!-- Progreso -->
+                <div class="progress-card">
+                  <div class="ring-wrap">
+                    <svg width="76" height="76" viewBox="0 0 76 76">
+                      <circle class="ring-bg" cx="38" cy="38" r="33"/>
+                      <circle class="ring-fill" id="ring-fill" cx="38" cy="38" r="33"/>
+                    </svg>
+                    <div class="ring-pct" id="ring-pct">0%</div>
+                  </div>
+                  <div class="prog-stats">
+                    <div class="ps-item"><div class="ps-num" id="ps-total">0</div><div class="ps-lbl">Requeridos</div></div>
+                    <div class="ps-item"><div class="ps-num" style="color:var(--green)" id="ps-aprobados">0</div><div class="ps-lbl">Aprobados</div></div>
+                    <div class="ps-item"><div class="ps-num" style="color:var(--blue)" id="ps-revision">0</div><div class="ps-lbl">En revisión</div></div>
+                    <div class="ps-item"><div class="ps-num" style="color:var(--red)" id="ps-rechazados">0</div><div class="ps-lbl">Rechazados</div></div>
+                    <div class="ps-item"><div class="ps-num" style="color:var(--amber)" id="ps-pendientes">0</div><div class="ps-lbl">Pendientes</div></div>
+                  </div>
+                </div>
+                <!-- Docs obligatorios -->
+                <div class="checklist-block">
+                  <div class="cl-header">
+                    <span class="cl-title">📋 Documentos obligatorios</span>
+                    <button class="btn btn-ghost btn-sm" onclick="generarChecklist()">⟳ Regenerar lista</button>
+                  </div>
+                  <div id="docs-obligatorios"></div>
+                </div>
+                <!-- Docs extra -->
+                <div class="checklist-block">
+                  <div class="cl-header"><span class="cl-title">📎 Documentos adicionales</span></div>
+                  <div id="docs-extras"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PORTAL CLIENTES ═══ -->
+      <div id="page-portal-clientes" style="display:none">
+        <div class="card">
+          <div class="card-header"><span class="card-title">🔗 Portal de clientes</span><button class="btn btn-primary btn-sm" onclick="openModal('nueva-inv')">+ Nueva invitación</button></div>
+          <table><thead><tr><th>Cliente</th><th>Expediente</th><th>Estado</th><th>Expira</th><th>Acciones</th></tr></thead><tbody id="inv-tb"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ═══ CHAT ═══ -->
+      <div id="page-chat" style="display:none">
+        <div style="display:grid;grid-template-columns:270px 1fr;gap:16px;height:calc(100vh - 130px)">
+          <div class="card" style="overflow-y:auto;margin:0"><div class="card-header"><span class="card-title">Conversaciones</span></div><div id="chat-lista"></div></div>
+          <div class="card" style="display:flex;flex-direction:column;margin:0"><div id="chat-panel" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text3)">← Selecciona una conversación</div></div>
+        </div>
+      </div>
+
+      <!-- ═══ CONFIG TRÁMITES ═══ -->
+      <div id="page-config-tramites" style="display:none">
+        <div class="card">
+          <div class="card-header"><span class="card-title">⚙️ Tipos de trámite</span><button class="btn btn-primary btn-sm" onclick="openModal('nuevo-tramite')">+ Añadir</button></div>
+          <table><thead><tr><th>Trámite</th><th>Precio base</th><th>Docs requeridos</th><th>Activo</th><th></th></tr></thead><tbody id="tramites-tb"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ═══ MI PLAN ═══ -->
+      <div id="page-mi-plan" style="display:none">
+        <div class="card"><div class="card-header"><span class="card-title">💳 Mi plan</span></div><div id="mi-plan-content" style="padding:24px"></div></div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODALES ═══════════════════════════════════════════════════ -->
+
+<!-- Nuevo expediente -->
+<div class="overlay" id="overlay-nuevo-exp">
+  <div class="modal">
+    <div class="modal-title">📁 Nuevo expediente</div>
+    <div class="form-row">
+      <div class="form-group"><label>Número *</label><input id="exp-num" placeholder="EXP-2025-001"></div>
+      <div class="form-group"><label>Tipo de trámite *</label><select id="exp-tipo"><option value="">Seleccionar...</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Cliente</label><select id="exp-cliente"><option value="">Sin asignar</option></select></div>
+      <div class="form-group"><label>Estado</label>
+        <select id="exp-estado"><option value="documentacion">Documentación</option><option value="presentado">Presentado</option><option value="en_tramite">En trámite</option><option value="urgente">Urgente</option><option value="resuelto">Resuelto</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Precio (€)</label><input type="number" id="exp-precio" placeholder="0.00"></div>
+      <div class="form-group"><label>Fecha límite</label><input type="date" id="exp-limite"></div>
+    </div>
+    <div class="form-group"><label>Notas</label><textarea id="exp-notas" rows="2"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('nuevo-exp')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearExpediente()">Crear expediente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Nuevo cliente -->
+<div class="overlay" id="overlay-nuevo-cliente">
+  <div class="modal">
+    <div class="modal-title">👤 Nuevo cliente</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nombre *</label><input id="cli-nombre" placeholder="María"></div>
+      <div class="form-group"><label>Apellidos</label><input id="cli-apellidos" placeholder="García López"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Email</label><input type="email" id="cli-email"></div>
+      <div class="form-group"><label>Teléfono</label><input id="cli-telefono"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Nacionalidad</label><input id="cli-nac"></div>
+      <div class="form-group"><label>NIE / NIF / Pasaporte</label><input id="cli-nie"></div>
+    </div>
+    <div class="form-group"><label>Notas</label><textarea id="cli-notas" rows="2"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('nuevo-cliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearCliente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Subir documento (gestor) -->
+<div class="overlay" id="overlay-subir-doc">
+  <div class="modal">
+    <div class="modal-title">⬆️ Subir documento</div>
+    <div style="font-weight:600;font-size:14px;color:var(--accent);margin-bottom:14px" id="subir-doc-nombre"></div>
+    <div class="form-group"><label>Archivo</label>
+      <div class="file-drop-zone" id="fdz" onclick="document.getElementById('fdz-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="onFdzDrop(event)">
+        <input type="file" id="fdz-input" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onchange="onFdzSelect(event)">
+        <div class="fdz-icon">📄</div>
+        <div class="fdz-text">Haz clic o arrastra el archivo<br><span style="font-size:11px">PDF, JPG, PNG, DOC · Máx 10MB</span></div>
+        <div class="fdz-filename" id="fdz-filename" style="display:none"></div>
+      </div>
+    </div>
+    <div class="form-group"><label>Notas (opcional)</label><textarea id="subir-doc-notas" rows="2" placeholder="Comentario sobre este documento..."></textarea></div>
+    <p id="subir-doc-err" style="color:var(--red);font-size:12px;display:none;margin-top:4px"></p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('subir-doc')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-subir-doc" onclick="ejecutarSubida()">Subir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rechazar documento -->
+<div class="overlay" id="overlay-rechazar-doc">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">✕ Rechazar documento</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">El cliente verá este mensaje en su portal.</p>
+    <div class="form-group"><label>Motivo del rechazo *</label><textarea id="rechazo-motivo" rows="3" placeholder="El documento está caducado. Sube una versión actualizada."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('rechazar-doc')">Cancelar</button>
+      <button class="btn btn-red" onclick="confirmarRechazo()">Rechazar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Añadir doc extra -->
+<div class="overlay" id="overlay-anadir-doc">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">＋ Documento adicional</div>
+    <div class="form-group"><label>Nombre *</label><input id="extra-nombre" placeholder="Ej: Justificante de pago de tasa"></div>
+    <div class="form-group"><label>Instrucciones para el cliente</label><textarea id="extra-desc" rows="2" placeholder="Debe ser reciente (menos de 3 meses)..."></textarea></div>
+    <div class="form-group"><label>¿Obligatorio?</label>
+      <select id="extra-oblig"><option value="true">Sí, obligatorio</option><option value="false">No, opcional</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('anadir-doc')">Cancelar</button>
+      <button class="btn btn-primary" onclick="anadirDocExtra()">Añadir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Enlace cliente -->
+<div class="overlay" id="overlay-enlace-cliente">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title">🔗 Enlace para el cliente</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Envía este enlace al cliente para que suba su documentación.</p>
+    <div style="display:flex;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px">
+      <input type="text" id="enlace-cli-url" readonly style="flex:1;border:none;background:transparent;font-family:monospace;font-size:12px;color:var(--text2);outline:none">
+      <button class="btn btn-primary btn-sm" onclick="copiarUrl()">Copiar</button>
+    </div>
+    <p style="font-size:11px;color:var(--text3)">El enlace no expira y no requiere contraseña.</p>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('enlace-cliente')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- Nueva invitación -->
+<div class="overlay" id="overlay-nueva-inv">
+  <div class="modal">
+    <div class="modal-title">🔗 Nueva invitación de portal</div>
+    <div class="form-group"><label>Cliente *</label><select id="inv-cli" onchange="loadExpsByCliente()"><option value="">Seleccionar...</option></select></div>
+    <div class="form-group"><label>Expediente</label><select id="inv-exp"><option value="">Sin expediente</option></select></div>
+    <div class="form-row">
+      <div class="form-group"><label>Email del cliente *</label><input type="email" id="inv-email"></div>
+      <div class="form-group"><label>Contraseña temporal *</label><input type="password" id="inv-pass"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('nueva-inv')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearInvitacion()">Crear</button>
+    </div>
+  </div>
+</div>
+
+<!-- Nuevo trámite -->
+<div class="overlay" id="overlay-nuevo-tramite">
+  <div class="modal">
+    <div class="modal-title">⚙️ Nuevo tipo de trámite</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nombre *</label><input id="tr-nombre" placeholder="Autorización de Residencia"></div>
+      <div class="form-group"><label>Precio base (€)</label><input type="number" id="tr-precio"></div>
+    </div>
+    <div class="form-group"><label>Descripción</label><textarea id="tr-desc" rows="2"></textarea></div>
+    <div class="form-group"><label>Documentos requeridos (uno por línea)</label><textarea id="tr-docs" rows="5" placeholder="Pasaporte en vigor&#10;Fotografía reciente&#10;Justificante de pago de tasa"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('nuevo-tramite')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearTramite()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══ JAVASCRIPT ════════════════════════════════════════════════ -->
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = 'TU_SUPABASE_URL';
+const SUPABASE_KEY = 'TU_SUPABASE_ANON_KEY';
+const BUCKET      = 'documentos-expedientes';
+const PORTAL_URL  = window.location.origin + '/migranova-docs-cliente.html';
+
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── ESTADO ─────────────────────────────────────────────────────────
+let me = null, profile = null, tid = null;
+let allExp = [], allCli = [], allTramites = [], allInv = [];
+let expActual = null;   // expediente seleccionado en docs
+let docActualId = null; // doc seleccionado para subir/rechazar
+let archivoSelec = null;
+let currentPageId = 'dashboard';
+
+// ── AUTH ────────────────────────────────────────────────────────────
+async function checkAuth(){
+  const {data:{session}} = await db.auth.getSession();
+  if(!session) return;
+  me = session.user;
+  const {data:p} = await db.from('perfiles').select('*,tenants(*,planes(*))').eq('id',me.id).single();
+  if(!p){await db.auth.signOut();return;}
+  profile = p; tid = p.tenant_id;
+  const tenant = p.tenants;
+  const plan   = p.tenants?.planes;
+  document.getElementById('sb-tenant').textContent  = tenant?.nombre || '—';
+  document.getElementById('sb-plan').textContent    = plan?.nombre || tenant?.plan_id || 'trial';
+  document.getElementById('sb-plan').className      = 'sidebar-plan-badge plan-'+(tenant?.plan_id||'trial');
+  document.getElementById('sb-nombre').textContent  = p.nombre || me.email;
+  document.getElementById('sb-rol').textContent     = p.rol;
+  document.getElementById('sb-av').textContent      = (p.nombre||'U').substring(0,2).toUpperCase();
+  document.getElementById('tb-tenant').textContent  = tenant?.nombre || '';
+  checkPlanAlert(tenant);
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  loadDashboard();
+}
+
+function checkPlanAlert(t){
+  if(!t) return;
+  const el=document.getElementById('plan-alert');
+  const msg=document.getElementById('plan-alert-msg');
+  if(t.estado==='trial'&&t.trial_hasta){
+    const d=Math.ceil((new Date(t.trial_hasta)-new Date())/(864e5));
+    if(d<=7){msg.innerHTML=`Trial vence en <strong>${d} días</strong>`;el.classList.remove('hidden');}
+  } else if(t.estado==='suspendido'){
+    msg.innerHTML='⛔ Cuenta suspendida. Contacta con soporte.';el.classList.remove('hidden');
+  }
+}
+
+window.doLogin = async()=>{
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');
+  err.style.display='none';
+  const {error}=await db.auth.signInWithPassword({email,password:pass});
+  if(error){err.textContent=error.message;err.style.display='block';return;}
+  checkAuth();
+};
+window.doLogout=async()=>{await db.auth.signOut();location.reload();};
+
+// ── NAV ─────────────────────────────────────────────────────────────
+window.showPage=function(id){
+  document.querySelectorAll('[id^="page-"]').forEach(el=>el.style.display='none');
+  const pg=document.getElementById('page-'+id);
+  if(pg) pg.style.display='block';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const nav=document.querySelector(`.nav-item[onclick*="${id}"]`);
+  if(nav) nav.classList.add('active');
+  const titles={dashboard:'Dashboard',expedientes:'📁 Expedientes',clientes:'👥 Clientes',documentos:'📋 Gestor de documentos','portal-clientes':'🔗 Portal clientes',chat:'💬 Chat','config-tramites':'⚙️ Trámites','mi-plan':'💳 Mi plan'};
+  document.getElementById('page-title').textContent=titles[id]||id;
+  currentPageId=id;
+  if(id==='expedientes') loadExpedientes();
+  if(id==='clientes') loadClientes();
+  if(id==='documentos') initDocs();
+  if(id==='portal-clientes') loadInvitaciones();
+  if(id==='chat') loadChat();
+  if(id==='config-tramites') loadTramites();
+  if(id==='mi-plan') loadMiPlan();
+};
+window.loadCurrentPage=()=>showPage(currentPageId);
+
+// ── DASHBOARD ────────────────────────────────────────────────────────
+async function loadDashboard(){
+  const [er,cr]= await Promise.all([
+    db.from('expedientes').select('*,clientes(nombre,apellidos)').eq('tenant_id',tid).order('created_at',{ascending:false}),
+    db.from('clientes').select('id').eq('tenant_id',tid)
+  ]);
+  allExp=er.data||[];
+  document.getElementById('k-exp').textContent=allExp.length;
+  document.getElementById('k-tramite').textContent=allExp.filter(e=>e.estado==='en_tramite').length;
+  document.getElementById('k-urgente').textContent=allExp.filter(e=>e.estado==='urgente').length;
+  document.getElementById('k-resuelto').textContent=allExp.filter(e=>e.estado==='resuelto').length;
+  document.getElementById('k-clientes').textContent=(cr.data||[]).length;
+  const urg=allExp.filter(e=>e.estado==='urgente').length;
+  const b=document.getElementById('badge-urgentes');
+  if(urg>0){b.textContent=urg;b.style.display='flex';}
+  // vencimientos
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  const prox=allExp.filter(e=>e.fecha_limite&&new Date(e.fecha_limite)>=hoy&&e.estado!=='resuelto').sort((a,b)=>new Date(a.fecha_limite)-new Date(b.fecha_limite)).slice(0,5);
+  document.getElementById('dash-venc').innerHTML=prox.length?prox.map(e=>{
+    const d=Math.ceil((new Date(e.fecha_limite)-hoy)/864e5);
+    const c=d<=3?'var(--red)':d<=7?'var(--amber)':'var(--text2)';
+    return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:600;font-size:13px">${e.numero}</div><div style="font-size:11px;color:var(--text3)">${e.tipo_tramite}</div></div><span style="color:${c};font-weight:700;font-size:12px">${d}d</span></div>`;
+  }).join(''):'<p style="color:var(--text3);font-size:13px;text-align:center;padding:16px">Sin vencimientos próximos 🎉</p>';
+  document.getElementById('dash-exp-tb').innerHTML=allExp.slice(0,8).map(e=>`<tr><td><div style="font-weight:500">${e.numero}</div><div style="font-size:11px;color:var(--text3)">${e.tipo_tramite}</div></td><td>${estadoBadge(e.estado)}</td></tr>`).join('')||'<tr><td colspan="2" class="empty"><p>Sin expedientes</p></td></tr>';
+}
+
+// ── EXPEDIENTES ──────────────────────────────────────────────────────
+async function loadExpedientes(){
+  const {data}=await db.from('expedientes').select('*,clientes(nombre,apellidos),perfiles(nombre)').eq('tenant_id',tid).order('created_at',{ascending:false});
+  allExp=data||[];
+  // Progreso docs para cada expediente
+  for(const e of allExp){
+    const {data:p}=await db.rpc('progreso_expediente',{p_expediente_id:e.id});
+    e._prog=p;
+  }
+  renderExpedientes(allExp);
+}
+
+function renderExpedientes(list){
+  const tb=document.getElementById('exp-tb');
+  if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">📁</div><p>Sin expedientes</p></div></td></tr>';return;}
+  tb.innerHTML=list.map(e=>{
+    const p=e._prog||{};
+    const pct=p.porcentaje||0;
+    const docsHtml=`<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:4px;background:var(--border);border-radius:999px;overflow:hidden;width:60px"><div style="height:4px;background:${pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--red)'};width:${pct}%;border-radius:999px"></div></div><span style="font-size:11px;font-weight:600;color:var(--text3)">${pct}%</span></div>`;
+    return `<tr>
+      <td><div style="font-weight:700">${e.numero}</div></td>
+      <td style="color:var(--text2)">${e.clientes?e.clientes.nombre+' '+e.clientes.apellidos:'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${e.tipo_tramite}</td>
+      <td>${docsHtml}</td>
+      <td>${estadoBadge(e.estado)}</td>
+      <td style="font-size:12px;color:var(--text3)">${fDate(e.fecha_apertura)}</td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn btn-ghost btn-sm" onclick="showPage('documentos');seleccionarExpDoc('${e.id}')">📋</button>
+        <button class="btn btn-ghost btn-sm" onclick="cambiarEstadoExp('${e.id}','${e.estado}')">✏️</button>
+        <button class="btn btn-red btn-sm" onclick="eliminarExp('${e.id}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+window.filterExp=()=>{
+  const q=document.getElementById('search-exp').value.toLowerCase();
+  const est=document.getElementById('filt-exp-est').value;
+  renderExpedientes(allExp.filter(e=>{
+    const mq=!q||(e.numero+' '+e.tipo_tramite+' '+(e.clientes?.nombre||'')).toLowerCase().includes(q);
+    return mq&&(!est||e.estado===est);
+  }));
+};
+
+window.crearExpediente=async()=>{
+  const num=document.getElementById('exp-num').value.trim();
+  const tipo=document.getElementById('exp-tipo').value;
+  if(!num||!tipo){return toast('Número y tipo son obligatorios','err');}
+  const {error}=await db.from('expedientes').insert({tenant_id:tid,numero:num,tipo_tramite:tipo,cliente_id:document.getElementById('exp-cliente').value||null,estado:document.getElementById('exp-estado').value,precio:document.getElementById('exp-precio').value||null,fecha_limite:document.getElementById('exp-limite').value||null,notas:document.getElementById('exp-notas').value,gestor_id:profile.id});
+  if(error) return toast('Error: '+error.message,'err');
+  toast('Expediente creado ✅');closeModal('nuevo-exp');loadExpedientes();loadDashboard();
+};
+
+window.cambiarEstadoExp=(id,est)=>{
+  const estados=['documentacion','presentado','en_tramite','urgente','resuelto'];
+  const nuevo=estados[(estados.indexOf(est)+1)%estados.length];
+  db.from('expedientes').update({estado:nuevo,updated_at:new Date().toISOString()}).eq('id',id).eq('tenant_id',tid).then(({error})=>{
+    if(error) return toast('Error','err');
+    toast('Estado actualizado ✅');loadExpedientes();loadDashboard();
+  });
+};
+
+window.eliminarExp=async(id)=>{
+  if(!confirm('¿Eliminar este expediente?')) return;
+  await db.from('expedientes').delete().eq('id',id).eq('tenant_id',tid);
+  toast('Eliminado');loadExpedientes();loadDashboard();
+};
+
+// ── CLIENTES ─────────────────────────────────────────────────────────
+async function loadClientes(){
+  const {data}=await db.from('clientes').select('*').eq('tenant_id',tid).order('created_at',{ascending:false});
+  allCli=data||[];renderClientes(allCli);
+}
+function renderClientes(list){
+  const tb=document.getElementById('cli-tb');
+  if(!list.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">👥</div><p>Sin clientes</p></div></td></tr>';return;}
+  tb.innerHTML=list.map(c=>`<tr><td style="font-weight:600">${c.nombre} ${c.apellidos||''}</td><td style="color:var(--text2)">${c.email||'—'}</td><td>${c.telefono||'—'}</td><td style="font-size:12px;color:var(--text3)">${c.nacionalidad||'—'}</td><td style="font-size:12px">${c.nif_nie||'—'}</td><td><button class="btn btn-red btn-sm" onclick="eliminarCliente('${c.id}')">🗑</button></td></tr>`).join('');
+}
+window.filterCli=()=>{const q=document.getElementById('search-cli').value.toLowerCase();renderClientes(allCli.filter(c=>(c.nombre+' '+(c.apellidos||'')+' '+(c.email||'')).toLowerCase().includes(q)));};
+window.crearCliente=async()=>{
+  const nom=document.getElementById('cli-nombre').value.trim();
+  if(!nom) return toast('El nombre es obligatorio','err');
+  const {error}=await db.from('clientes').insert({tenant_id:tid,nombre:nom,apellidos:document.getElementById('cli-apellidos').value.trim()||null,email:document.getElementById('cli-email').value.trim()||null,telefono:document.getElementById('cli-telefono').value.trim()||null,nacionalidad:document.getElementById('cli-nac').value.trim()||null,nif_nie:document.getElementById('cli-nie').value.trim()||null,notas:document.getElementById('cli-notas').value,creado_por:profile.id});
+  if(error) return toast('Error: '+error.message,'err');
+  toast('Cliente guardado ✅');closeModal('nuevo-cliente');loadClientes();
+};
+window.eliminarCliente=async(id)=>{
+  if(!confirm('¿Eliminar cliente?')) return;
+  await db.from('clientes').delete().eq('id',id).eq('tenant_id',tid);
+  toast('Eliminado');loadClientes();
+};
+
+// ══════════════════════════════════════════════════════════════════════
+// ── MÓDULO DOCUMENTOS ────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════
+async function initDocs(){
+  if(!allExp.length) await loadExpedientesParaDocs();
+  else renderDocsExpList(allExp);
+}
+
+async function loadExpedientesParaDocs(){
+  const {data}=await db.from('expedientes').select('*,clientes(nombre,apellidos)').eq('tenant_id',tid).order('created_at',{ascending:false});
+  allExp=data||[];
+  for(const e of allExp){
+    const {data:p}=await db.rpc('progreso_expediente',{p_expediente_id:e.id});
+    e._prog=p;
+  }
+  renderDocsExpList(allExp);
+}
+
+function renderDocsExpList(list){
+  const el=document.getElementById('docs-exp-list');
+  if(!list.length){el.innerHTML='<div style="padding:30px;text-align:center;color:var(--text3);font-size:13px">Sin expedientes</div>';return;}
+  el.innerHTML=list.map(e=>{
+    const p=e._prog||{};const pct=p.porcentaje||0;
+    const color=pct>=100?'var(--green)':pct<40?'var(--red)':'var(--amber)';
+    const active=expActual?.id===e.id?'active':'';
+    return `<div class="docs-exp-item ${active}" onclick="seleccionarExpDoc('${e.id}')">
+      <div class="dei-num">${e.numero}</div>
+      <div class="dei-cli">${e.clientes?e.clientes.nombre+' '+e.clientes.apellidos:'Sin cliente'}</div>
+      <div class="dei-tram">${e.tipo_tramite}</div>
+      <div class="dei-progress">
+        <div class="pbar-wrap"><div class="pbar-fill" style="width:${pct}%;background:${color}"></div></div>
+        <span class="pbar-pct">${pct}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.filterDocsExp=()=>{
+  const q=document.getElementById('search-docs-exp').value.toLowerCase();
+  renderDocsExpList(allExp.filter(e=>(e.numero+' '+e.tipo_tramite+' '+(e.clientes?.nombre||'')).toLowerCase().includes(q)));
+};
+
+window.seleccionarExpDoc=async(id)=>{
+  if(currentPageId!=='documentos') showPage('documentos');
+  expActual=allExp.find(e=>e.id===id)||{id};
+  if(!expActual.tipo_tramite){
+    const {data}=await db.from('expedientes').select('*,clientes(nombre,apellidos)').eq('id',id).single();
+    if(data){expActual=data;if(!allExp.find(e=>e.id===id))allExp.push(expActual);}
+  }
+  document.getElementById('docs-empty-state').style.display='none';
+  document.getElementById('docs-detail').style.display='flex';
+  document.getElementById('docs-detail-num').textContent=expActual.numero;
+  document.getElementById('docs-detail-meta').innerHTML=`
+    <span class="badge badge-en_tramite">${expActual.tipo_tramite}</span>
+    <span style="font-size:12px;color:var(--text2)">${expActual.clientes?expActual.clientes.nombre+' '+expActual.clientes.apellidos:'Sin cliente'}</span>`;
+  renderDocsExpList(allExp);
+  await cargarDocs();
+};
+
+async function cargarDocs(){
+  if(!expActual) return;
+  const {data}=await db.from('documentos_expediente').select('*').eq('expediente_id',expActual.id).order('orden');
+  const docs=data||[];
+  // progreso
+  const {data:prog}=await db.rpc('progreso_expediente',{p_expediente_id:expActual.id});
+  actualizarProgreso(prog||{});
+  // actualizar en lista
+  const inList=allExp.find(e=>e.id===expActual.id);
+  if(inList) inList._prog=prog;
+  renderDocsExpList(allExp);
+  // Contar docs pendientes revisión para badge
+  const pendRev=docs.filter(d=>d.estado==='subido').length;
+  const b=document.getElementById('badge-docs');
+  if(pendRev>0){b.textContent=pendRev;b.style.display='flex';}else b.style.display='none';
+  // render
+  const oblig=docs.filter(d=>d.obligatorio);
+  const extras=docs.filter(d=>!d.obligatorio);
+  document.getElementById('docs-obligatorios').innerHTML=oblig.length
+    ? oblig.map(renderDocRow).join('')
+    : `<div style="padding:20px;text-align:center">
+        <button class="btn btn-primary btn-sm" onclick="generarChecklist()">📋 Generar checklist del trámite</button>
+        <p style="font-size:12px;color:var(--text3);margin-top:10px">Genera la lista de documentos según el tipo de trámite configurado</p>
+      </div>`;
+  document.getElementById('docs-extras').innerHTML=extras.length
+    ? extras.map(renderDocRow).join('')
+    : '<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">Sin documentos adicionales</div>';
+}
+
+function renderDocRow(doc){
+  const icons={pendiente:'⬜',subido:'📄',aprobado:'✅',rechazado:'❌'};
+  const dotClass={pendiente:'dot-pendiente',subido:'dot-subido',aprobado:'dot-aprobado',rechazado:'dot-rechazado'};
+  const obBadge=doc.obligatorio?'<span class="oblig-badge">Requerido</span>':'<span class="opt-badge">Opcional</span>';
+  let meta='';
+  if(doc.estado==='pendiente') meta='Pendiente de subir';
+  else if(doc.archivo_nombre) meta=`<a href="${doc.archivo_url}" target="_blank">📥 ${doc.archivo_nombre}</a> · Subido por ${doc.subido_por==='cliente'?'el cliente':'el gestor'}${doc.archivo_tamanio_kb?' · '+doc.archivo_tamanio_kb+' KB':''}`;
+  const acciones=[];
+  if(doc.estado==='subido'){
+    acciones.push(`<button class="btn btn-green btn-sm" onclick="aprobarDoc('${doc.id}')">✓ Aprobar</button>`);
+    acciones.push(`<button class="btn btn-red btn-sm" onclick="abrirRechazo('${doc.id}')">✕ Rechazar</button>`);
+  }
+  if(doc.estado!=='aprobado') acciones.push(`<button class="btn btn-ghost btn-sm" onclick="abrirSubirDoc('${doc.id}','${doc.nombre_doc.replace(/'/g,"\\'")}')">⬆</button>`);
+  if(doc.estado!=='pendiente') acciones.push(`<button class="btn btn-ghost btn-sm" onclick="resetDoc('${doc.id}')" title="Resetear">↺</button>`);
+  return `<div class="doc-row" id="doc-${doc.id}">
+    <div class="doc-status-dot ${dotClass[doc.estado]}">${icons[doc.estado]}</div>
+    <div class="doc-info">
+      <div class="doc-nombre">${doc.nombre_doc} ${obBadge}</div>
+      <div class="doc-meta">${meta}</div>
+      ${doc.estado==='rechazado'&&doc.notas_despacho?`<div class="doc-rechazo">Motivo: ${doc.notas_despacho}</div>`:''}
+    </div>
+    <div class="doc-actions-row">${acciones.join('')}</div>
+  </div>`;
+}
+
+function actualizarProgreso(p){
+  const pct=p.porcentaje||0;
+  const offset=220-(pct/100)*220;
+  const ring=document.getElementById('ring-fill');
+  ring.style.strokeDashoffset=offset;
+  ring.style.stroke=pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+  document.getElementById('ring-pct').textContent=pct+'%';
+  document.getElementById('ps-total').textContent=p.total||0;
+  document.getElementById('ps-aprobados').textContent=p.aprobados||0;
+  document.getElementById('ps-revision').textContent=(p.subidos||0)-(p.aprobados||0);
+  document.getElementById('ps-rechazados').textContent=p.rechazados||0;
+  document.getElementById('ps-pendientes').textContent=p.pendientes||0;
+}
+
+// Generar checklist
+window.generarChecklist=async()=>{
+  if(!expActual) return;
+  const {data,error}=await db.rpc('generar_checklist_expediente',{p_expediente_id:expActual.id,p_tenant_id:tid||expActual.tenant_id,p_tipo_tramite:expActual.tipo_tramite,p_cliente_id:expActual.cliente_id||null});
+  if(error) return toast('Error: '+error.message,'err');
+  toast(`✅ ${data} documentos añadidos al checklist`);
+  cargarDocs();
+};
+
+// Aprobar / rechazar / reset
+window.aprobarDoc=async(id)=>{
+  await db.from('documentos_expediente').update({estado:'aprobado',revisado_por:profile.id,revisado_at:new Date().toISOString(),notas_despacho:null,updated_at:new Date().toISOString()}).eq('id',id);
+  toast('Documento aprobado ✅');cargarDocs();
+};
+
+let rechazandoId=null;
+window.abrirRechazo=(id)=>{rechazandoId=id;document.getElementById('rechazo-motivo').value='';openModal('rechazar-doc');};
+window.confirmarRechazo=async()=>{
+  const motivo=document.getElementById('rechazo-motivo').value.trim();
+  if(!motivo) return toast('Indica el motivo','err');
+  await db.from('documentos_expediente').update({estado:'rechazado',notas_despacho:motivo,revisado_por:profile.id,revisado_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',rechazandoId);
+  toast('Documento rechazado');closeModal('rechazar-doc');cargarDocs();
+};
+window.resetDoc=async(id)=>{
+  if(!confirm('¿Resetear a pendiente?')) return;
+  await db.from('documentos_expediente').update({estado:'pendiente',archivo_nombre:null,archivo_url:null,archivo_path:null,archivo_tamanio_kb:null,archivo_tipo:null,subido_por:null,subido_at:null,revisado_por:null,revisado_at:null,notas_despacho:null,updated_at:new Date().toISOString()}).eq('id',id);
+  toast('Reseteado');cargarDocs();
+};
+
+// Subir documento
+window.abrirSubirDoc=(id,nombre='')=>{
+  docActualId=id; archivoSelec=null;
+  document.getElementById('fdz').classList.remove('has-file','drag');
+  document.getElementById('fdz-filename').style.display='none';
+  document.getElementById('fdz-input').value='';
+  document.getElementById('subir-doc-notas').value='';
+  document.getElementById('subir-doc-err').style.display='none';
+  document.getElementById('subir-doc-nombre').textContent=nombre||'Documento adicional';
+  openModal('subir-doc');
+};
+window.onFdzSelect=(e)=>{const f=e.target.files[0];if(f) setArchivoSelec(f);};
+window.onFdzDrop=(e)=>{e.preventDefault();document.getElementById('fdz').classList.remove('drag');const f=e.dataTransfer.files[0];if(f){document.getElementById('fdz-input').files=e.dataTransfer.files;setArchivoSelec(f);}};
+function setArchivoSelec(f){
+  archivoSelec=f;
+  document.getElementById('fdz-filename').textContent=f.name+' ('+Math.round(f.size/1024)+' KB)';
+  document.getElementById('fdz-filename').style.display='block';
+  document.getElementById('fdz').classList.add('has-file');
+}
+window.ejecutarSubida=async()=>{
+  if(!archivoSelec){document.getElementById('subir-doc-err').textContent='Selecciona un archivo';document.getElementById('subir-doc-err').style.display='block';return;}
+  if(archivoSelec.size>10*1024*1024){document.getElementById('subir-doc-err').textContent='Máximo 10MB';document.getElementById('subir-doc-err').style.display='block';return;}
+  const btn=document.getElementById('btn-subir-doc');
+  btn.disabled=true;btn.textContent='Subiendo...';
+  try{
+    const expId=expActual.id;const tId=tid||expActual.tenant_id;
+    const ext=archivoSelec.name.split('.').pop();
+    const path=`${tId}/${expId}/${docActualId||'extra'}/${Date.now()}.${ext}`;
+    const {error:upErr}=await db.storage.from(BUCKET).upload(path,archivoSelec,{upsert:true});
+    if(upErr) throw upErr;
+    const {data:ud}=db.storage.from(BUCKET).getPublicUrl(path);
+    const notas=document.getElementById('subir-doc-notas').value.trim();
+    if(docActualId){
+      await db.from('documentos_expediente').update({estado:'subido',archivo_nombre:archivoSelec.name,archivo_url:ud.publicUrl,archivo_path:path,archivo_tamanio_kb:Math.round(archivoSelec.size/1024),archivo_tipo:archivoSelec.type,subido_por:'despacho',subido_at:new Date().toISOString(),notas_despacho:notas||null,updated_at:new Date().toISOString()}).eq('id',docActualId);
+    } else {
+      await db.from('documentos_expediente').insert({tenant_id:tId,expediente_id:expId,cliente_id:expActual.cliente_id||null,nombre_doc:document.getElementById('subir-doc-nombre').textContent,obligatorio:false,estado:'subido',archivo_nombre:archivoSelec.name,archivo_url:ud.publicUrl,archivo_path:path,archivo_tamanio_kb:Math.round(archivoSelec.size/1024),archivo_tipo:archivoSelec.type,subido_por:'despacho',subido_at:new Date().toISOString(),notas_despacho:notas||null});
+    }
+    toast('Documento subido ✅');closeModal('subir-doc');cargarDocs();
+  } catch(err){document.getElementById('subir-doc-err').textContent=err.message;document.getElementById('subir-doc-err').style.display='block';}
+  finally{btn.disabled=false;btn.textContent='Subir';}
+};
+
+// Doc extra
+window.anadirDocExtra=async()=>{
+  const nombre=document.getElementById('extra-nombre').value.trim();
+  if(!nombre) return toast('Introduce el nombre','err');
+  await db.from('documentos_expediente').insert({tenant_id:tid,expediente_id:expActual.id,cliente_id:expActual.cliente_id||null,nombre_doc:nombre,descripcion:document.getElementById('extra-desc').value.trim()||null,obligatorio:document.getElementById('extra-oblig').value==='true',estado:'pendiente'});
+  toast('Documento añadido ✅');closeModal('anadir-doc');cargarDocs();
+};
+
+// Enlace cliente
+window.copiarEnlaceCliente=()=>{
+  const url=`${PORTAL_URL}?exp=${expActual.id}`;
+  document.getElementById('enlace-cli-url').value=url;
+  openModal('enlace-cliente');
+};
+window.copiarUrl=()=>{
+  navigator.clipboard.writeText(document.getElementById('enlace-cli-url').value);
+  toast('Enlace copiado ✅');
+};
+
+// ── INVITACIONES ─────────────────────────────────────────────────────
+async function loadInvitaciones(){
+  const {data}=await db.from('invitaciones').select('*,clientes(nombre,apellidos),expedientes(numero,tipo_tramite)').eq('tenant_id',tid).order('created_at',{ascending:false});
+  allInv=data||[];
+  const tb=document.getElementById('inv-tb');
+  if(!allInv.length){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-icon">🔗</div><p>Sin invitaciones</p></div></td></tr>';return;}
+  tb.innerHTML=allInv.map(i=>`<tr>
+    <td style="font-weight:500">${i.clientes?.nombre||'—'} ${i.clientes?.apellidos||''}</td>
+    <td style="font-size:12px;color:var(--text2)">${i.expedientes?.numero||'—'}</td>
+    <td>${i.activa?'<span style="color:var(--green);font-size:12px">✓ Activa</span>':'<span style="color:var(--text3);font-size:12px">Inactiva</span>'}</td>
+    <td style="font-size:12px;color:var(--text3)">${fDate(i.expira_en)}</td>
+    <td><div style="display:flex;gap:6px">
+      <button class="btn btn-ghost btn-sm" onclick="copiarPortal('${i.token}')">📋 Enlace</button>
+      <button class="btn btn-red btn-sm" onclick="desactivarInv('${i.id}')">✕</button>
+    </div></td>
+  </tr>`).join('');
+}
+window.loadExpsByCliente=async()=>{
+  const cid=document.getElementById('inv-cli').value;
+  const sel=document.getElementById('inv-exp');
+  sel.innerHTML='<option value="">Sin expediente</option>';
+  if(!cid) return;
+  const {data}=await db.from('expedientes').select('id,numero,tipo_tramite').eq('tenant_id',tid).eq('cliente_id',cid);
+  (data||[]).forEach(e=>sel.innerHTML+=`<option value="${e.id}">${e.numero} — ${e.tipo_tramite}</option>`);
+  const cli=allCli.find(c=>c.id===cid);
+  if(cli?.email) document.getElementById('inv-email').value=cli.email;
+};
+window.crearInvitacion=async()=>{
+  const cid=document.getElementById('inv-cli').value;
+  const email=document.getElementById('inv-email').value.trim();
+  const pass=document.getElementById('inv-pass').value;
+  if(!cid||!email||!pass) return toast('Todos los campos son obligatorios','err');
+  if(pass.length<8) return toast('Contraseña mínimo 8 caracteres','err');
+  const {error}=await db.from('invitaciones').insert({tenant_id:tid,cliente_id:cid,expediente_id:document.getElementById('inv-exp').value||null,email,password_hash:btoa(pass),creada_por:profile.id});
+  if(error) return toast('Error: '+error.message,'err');
+  toast('Invitación creada ✅');closeModal('nueva-inv');loadInvitaciones();
+};
+window.copiarPortal=(token)=>{
+  const url=`${window.location.origin}/migranova-docs-cliente.html?exp=${token}`;
+  navigator.clipboard.writeText(url).then(()=>toast('Enlace copiado ✅')).catch(()=>toast('URL: '+url));
+};
+window.desactivarInv=async(id)=>{
+  await db.from('invitaciones').update({activa:false}).eq('id',id).eq('tenant_id',tid);
+  toast('Invitación desactivada');loadInvitaciones();
+};
+
+// ── CHAT ─────────────────────────────────────────────────────────────
+async function loadChat(){
+  const {data}=await db.from('invitaciones').select('*,clientes(nombre,apellidos),expedientes(numero)').eq('tenant_id',tid).eq('activa',true);
+  const lista=document.getElementById('chat-lista');
+  if(!data?.length){lista.innerHTML='<div class="empty"><div class="empty-icon">💬</div><p>Sin conversaciones</p></div>';return;}
+  lista.innerHTML=data.map(i=>`<div style="padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:.15s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''" onclick="abrirChat('${i.id}','${(i.clientes?.nombre+' '+(i.clientes?.apellidos||'')).replace(/'/g,"\\'")}')">
+    <div style="font-weight:600;font-size:13px">${i.clientes?.nombre} ${i.clientes?.apellidos||''}</div>
+    <div style="font-size:11px;color:var(--text3)">${i.expedientes?.numero||'Sin exp.'}</div>
+  </div>`).join('');
+}
+let chatInvId=null;
+window.abrirChat=async(invId,nombre)=>{
+  chatInvId=invId;
+  const {data:msgs}=await db.from('mensajes_chat').select('*').eq('invitacion_id',invId).order('created_at',{ascending:true});
+  await db.from('mensajes_chat').update({leido:true}).eq('invitacion_id',invId).eq('remitente','cliente').eq('tenant_id',tid);
+  const panel=document.getElementById('chat-panel');
+  panel.style.cssText='flex:1;display:flex;flex-direction:column;';
+  panel.innerHTML=`<div class="card-header"><span class="card-title">💬 ${nombre}</span></div>
+    <div id="chat-msgs" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px">
+      ${(msgs||[]).map(m=>`<div style="display:flex;flex-direction:column;align-items:${m.remitente==='despacho'?'flex-end':'flex-start'}">
+        <div style="background:${m.remitente==='despacho'?'var(--accent)':'var(--surface2)'};color:${m.remitente==='despacho'?'#fff':'var(--text)'};padding:9px 13px;border-radius:10px;max-width:75%;font-size:13px">${m.mensaje}</div>
+        <span style="font-size:10px;color:var(--text3);margin-top:3px">${fDateTime(m.created_at)}</span>
+      </div>`).join('')}
+      ${!msgs?.length?'<div style="text-align:center;color:var(--text3);font-size:13px;margin:auto">Sin mensajes aún</div>':''}
+    </div>
+    <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px">
+      <input id="chat-input" placeholder="Escribe un mensaje..." style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:Sora,sans-serif;font-size:13px;outline:none" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMsg();}">
+      <button class="btn btn-primary" onclick="enviarMsg()">Enviar</button>
+    </div>`;
+  const m=document.getElementById('chat-msgs');if(m)m.scrollTop=m.scrollHeight;
+};
+window.enviarMsg=async()=>{
+  const txt=document.getElementById('chat-input')?.value?.trim();
+  if(!txt||!chatInvId) return;
+  document.getElementById('chat-input').value='';
+  await db.from('mensajes_chat').insert({tenant_id:tid,invitacion_id:chatInvId,remitente:'despacho',remitente_nombre:profile.nombre||'Despacho',mensaje:txt});
+  const inv=allInv.find(i=>i.id===chatInvId);
+  abrirChat(chatInvId,inv?`${inv.clientes?.nombre} ${inv.clientes?.apellidos||''}`:chatInvId);
+};
+
+// ── TRÁMITES ─────────────────────────────────────────────────────────
+async function loadTramites(){
+  const {data}=await db.from('config_tramites').select('*').eq('tenant_id',tid).order('tipo_tramite');
+  allTramites=data||[];
+  const tb=document.getElementById('tramites-tb');
+  if(!allTramites.length){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-icon">⚙️</div><p>Sin trámites configurados</p></div></td></tr>';return;}
+  tb.innerHTML=allTramites.map(t=>`<tr>
+    <td style="font-weight:700">${t.tipo_tramite}</td>
+    <td style="color:var(--text2)">${t.precio_base?t.precio_base+'€':'—'}</td>
+    <td style="font-size:12px;color:var(--text3)">${(t.docs_requeridos||[]).length} docs</td>
+    <td>${t.activo?'<span style="color:var(--green)">✓ Activo</span>':'<span style="color:var(--text3)">✗</span>'}</td>
+    <td><button class="btn btn-red btn-sm" onclick="eliminarTramite('${t.id}')">🗑</button></td>
+  </tr>`).join('');
+}
+window.crearTramite=async()=>{
+  const nom=document.getElementById('tr-nombre').value.trim();
+  if(!nom) return toast('El nombre es obligatorio','err');
+  const docs=document.getElementById('tr-docs').value.split('\n').map(d=>d.trim()).filter(Boolean);
+  const {error}=await db.from('config_tramites').insert({tenant_id:tid,tipo_tramite:nom,descripcion:document.getElementById('tr-desc').value.trim()||null,precio_base:document.getElementById('tr-precio').value||null,docs_requeridos:docs});
+  if(error) return toast('Error: '+error.message,'err');
+  toast('Trámite guardado ✅');closeModal('nuevo-tramite');loadTramites();
+};
+window.eliminarTramite=async(id)=>{
+  if(!confirm('¿Eliminar este trámite?')) return;
+  await db.from('config_tramites').delete().eq('id',id).eq('tenant_id',tid);
+  toast('Eliminado');loadTramites();
+};
+
+// ── MI PLAN ──────────────────────────────────────────────────────────
+async function loadMiPlan(){
+  const t=profile.tenants, p=profile.tenants?.planes;
+  const [er,cr,ur]=await Promise.all([
+    db.from('expedientes').select('id',{count:'exact',head:true}).eq('tenant_id',tid),
+    db.from('clientes').select('id',{count:'exact',head:true}).eq('tenant_id',tid),
+    db.from('perfiles').select('id',{count:'exact',head:true}).eq('tenant_id',tid)
+  ]);
+  document.getElementById('mi-plan-content').innerHTML=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div>
+      <h3 style="font-size:14px;font-weight:700;margin-bottom:14px">Plan actual</h3>
+      <div style="background:var(--accent-light);border:1px solid rgba(26,79,216,.15);border-radius:10px;padding:20px;margin-bottom:14px">
+        <div style="font-size:22px;font-weight:700;color:var(--accent)">${p?.nombre||t?.plan_id?.toUpperCase()}</div>
+        <div style="font-size:26px;font-weight:700;margin:4px 0">${p?.precio_mensual||0}€<span style="font-size:14px;font-weight:400;color:var(--text2)">/mes</span></div>
+      </div>
+      ${t?.estado==='trial'&&t?.trial_hasta?`<div style="background:var(--amber-light);border:1px solid rgba(180,83,9,.2);border-radius:8px;padding:12px;font-size:13px;color:var(--amber)">⏳ Trial hasta el <strong>${fDate(t.trial_hasta)}</strong></div>`:''}
+    </div>
+    <div>
+      <h3 style="font-size:14px;font-weight:700;margin-bottom:14px">Uso actual</h3>
+      ${usageBar('Expedientes',er.count,p?.max_expedientes)}
+      ${usageBar('Usuarios',ur.count,p?.max_usuarios)}
+      ${usageBar('Clientes',cr.count,p?.max_clientes)}
+    </div>
+  </div>`;
+}
+function usageBar(lbl,cur,max){
+  const pct=max?Math.min(100,Math.round((cur/max)*100)):0;
+  const col=pct>85?'var(--red)':pct>60?'var(--amber)':'var(--green)';
+  return `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="font-weight:500">${lbl}</span><span style="color:var(--text3)">${cur}${max?'/'+max:' (ilimitado)'}</span></div>${max?`<div style="background:var(--surface2);border-radius:999px;height:6px"><div style="background:${col};height:6px;border-radius:999px;width:${pct}%"></div></div>`:'<div style="font-size:11px;color:var(--green)">∞ Ilimitado</div>'}</div>`;
+}
+
+// ── MODALES ──────────────────────────────────────────────────────────
+window.openModal=async(id)=>{
+  if(id==='nuevo-exp') await populateSelectsExp();
+  if(id==='nueva-inv') await populateSelectsInv();
+  document.getElementById('overlay-'+id).classList.add('open');
+};
+window.closeModal=id=>document.getElementById('overlay-'+id).classList.remove('open');
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeModal(o.id.replace('overlay-',''));}));
+
+async function populateSelectsExp(){
+  if(!allCli.length) await loadClientes();
+  if(!allTramites.length) await loadTramites();
+  document.getElementById('exp-cliente').innerHTML='<option value="">Sin asignar</option>'+allCli.map(c=>`<option value="${c.id}">${c.nombre} ${c.apellidos||''}</option>`).join('');
+  document.getElementById('exp-tipo').innerHTML='<option value="">Seleccionar...</option>'+allTramites.map(t=>`<option value="${t.tipo_tramite}">${t.tipo_tramite}</option>`).join('');
+}
+async function populateSelectsInv(){
+  if(!allCli.length) await loadClientes();
+  document.getElementById('inv-cli').innerHTML='<option value="">Seleccionar...</option>'+allCli.map(c=>`<option value="${c.id}">${c.nombre} ${c.apellidos||''}</option>`).join('');
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────
+function estadoBadge(e){
+  const m={documentacion:'📄 Documentación',presentado:'📨 Presentado',en_tramite:'⏳ En trámite',urgente:'🚨 Urgente',resuelto:'✅ Resuelto'};
+  return `<span class="badge badge-${e}">${m[e]||e}</span>`;
+}
+function fDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});}
+function fDateTime(d){if(!d)return'—';return new Date(d).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.className='toast '+(type==='err'?'err':'ok');
+  t.textContent=msg;t.style.display='block';
+  setTimeout(()=>t.style.display='none',3200);
+}
+
+checkAuth();
+</script>
+</body>
+</html>
